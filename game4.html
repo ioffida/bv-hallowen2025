@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏃‍♂️ Halloween Runner 2025</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #fff;
+            overflow: hidden;
+        }
+        
+        #gameContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+        }
+        
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(26,26,46,0.95));
+            color: #fff;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .overlay.hidden {
+            display: none;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 12px rgba(255,107,53,0.4);
+            color: #ff6b35;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: #ffa600;
+        }
+        
+        .rules {
+            background: rgba(255,107,53,0.1);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid rgba(255,107,53,0.3);
+            margin-bottom: 2rem;
+            max-width: 600px;
+        }
+        
+        .rules h3 {
+            color: #4ade80;
+            margin-bottom: 10px;
+        }
+        
+        .rules ul {
+            text-align: left;
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .rules li {
+            margin: 5px 0;
+            color: #ccc;
+        }
+        
+        .bigBtn {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: linear-gradient(145deg, #ff6b35, #ff8e53);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(255,107,53,0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 10px;
+        }
+        
+        .bigBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(255,107,53,0.4);
+        }
+        
+        .hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 5;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,107,53,0.3);
+        }
+        
+        .legend {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+            background: rgba(0,0,0,0.8);
+            padding: 10px 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,107,53,0.3);
+            font-size: 12px;
+            color: #fff;
+            white-space: nowrap;
+            text-align: center;
+        }
+        
+        .hud div {
+            margin: 5px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .score { color: #4ade80; }
+        .lives { color: #ff4757; }
+        .level { color: #ff6b35; }
+        
+        .pauseBtn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 5;
+            padding: 10px 20px;
+            background: linear-gradient(145deg, #ff6b35, #ff8e53);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(255,107,53,0.3);
+        }
+        
+        .slowTimer {
+            position: absolute;
+            top: 20px;
+            right: 120px;
+            z-index: 5;
+            background: rgba(139,92,246,0.9);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 2px solid #8b5cf6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 60px;
+        }
+        
+        .slowIcon {
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+        
+        .slowText {
+            color: #fff;
+            font-size: 10px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        
+        .slowTime {
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .screamer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 20;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            font-weight: bold;
+            text-shadow: 0 0 20px currentColor;
+        }
+        
+        .screamer.red { background: #ff0000; color: #fff; }
+        .screamer.black { background: #000; color: #fff; }
+        .screamer.white { background: #fff; color: #000; }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .pulse {
+            animation: pulse 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <!-- HUD -->
+        <div class="hud">
+            <div class="score">Очки: <span id="score">0</span></div>
+            <div class="lives">Жизни: <span id="lives">3</span></div>
+            <div class="level">Уровень: <span id="level">1</span></div>
+        </div>
+        
+        <!-- Pause Button -->
+        <button class="pauseBtn" id="pauseBtn">⏸️ Пауза</button>
+        
+        <!-- Slow Debuff Timer -->
+        <div class="slowTimer" id="slowTimer" style="display: none;">
+            <div class="slowIcon">🟣</div>
+            <div class="slowText">SLOW</div>
+            <div class="slowTime" id="slowTime">10</div>
+        </div>
+        
+        <!-- Legend -->
+        <div class="legend" id="legend">
+            [🎮 ОБЪЕКТЫ] [🟢+10] [🟠+25] [🟣+50] [❤️+1❤️] [💀-1❤️] [🟣SLOW] [👹BOSS]
+        </div>
+        
+        <!-- Start Screen -->
+        <div id="startScreen" class="overlay">
+            <h1>🏃‍♂️ HALLOWEEN RUNNER 🏃‍♂️</h1>
+            <p class="subtitle">Беги, прыгай, выживай!</p>
+            
+            <div class="rules">
+                <h3>🎮 Управление:</h3>
+                <ul>
+                    <li><b>Пробел</b> - прыжок</li>
+                    <li><b>↑</b> - верхний уровень</li>
+                    <li><b>↓</b> - нижний уровень</li>
+                    <li><b>←</b> - движение влево</li>
+                    <li><b>→</b> - движение вправо</li>
+                </ul>
+                
+                <h3>🎯 Цель:</h3>
+                <ul>
+                    <li>Набрать <span style="color:#4ade80;font-weight:bold;">666 очков</span></li>
+                    <li>Избегайте препятствий</li>
+                    <li>Собирайте бонусы</li>
+                    <li>Выживайте как можно дольше!</li>
+                </ul>
+                
+                <h3>🎁 Бонусы:</h3>
+                <ul>
+                    <li><span style="color:#4ade80;">🟢 Зеленые</span> - +10 очков</li>
+                    <li><span style="color:#ff6b35;">🟠 Оранжевые</span> - +25 очков</li>
+                    <li><span style="color:#8b5cf6;">🟣 Фиолетовые</span> - +50 очков</li>
+                    <li><span style="color:#ff4757;">❤️ Сердца</span> - +1 жизнь</li>
+                </ul>
+                
+                <h3>⚠️ Опасности:</h3>
+                <ul>
+                    <li><span style="color:#ff4757;">💀 Черепа</span> - -1 жизнь</li>
+                    <li><span style="color:#8b5cf6;">🟣 Дебафы</span> - замедление</li>
+                    <li><span style="color:#ff0000;">👻 Скримеры</span> - пугающие эффекты</li>
+                </ul>
+            </div>
+            
+            <button class="bigBtn" id="startBtn">🚀 СТАРТ</button>
+        </div>
+        
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" class="overlay hidden">
+            <h1>💀 GAME OVER 💀</h1>
+            <p class="subtitle">Ты не смог выжить...</p>
+            <div class="rules">
+                <h3>Ваш результат:</h3>
+                <p>Очки: <span id="finalScore" style="color:#4ade80;font-size:2rem;">0</span></p>
+                <p>Уровень: <span id="finalLevel" style="color:#ff6b35;font-size:1.5rem;">1</span></p>
+            </div>
+            <button class="bigBtn" id="restartBtn">🔄 ЗАНОВО</button>
+        </div>
+        
+        <!-- Victory Screen -->
+        <div id="victoryScreen" class="overlay hidden">
+            <h1>🎉 ПОБЕДА! 🎉</h1>
+            <p class="subtitle">Ты выжил и набрал 666 очков!</p>
+            <div class="rules">
+                <h3>Вопрос: "КПКУКПКПУКПУК"</h3>
+                <p>Поздравляем с победой!</p>
+            </div>
+            <button class="bigBtn" id="victoryRestartBtn">🎮 СЫГРАТЬ ЕЩЁ</button>
+        </div>
+        
+        <!-- Pause Screen -->
+        <div id="pauseScreen" class="overlay hidden">
+            <h1>⏸️ ПАУЗА</h1>
+            <p class="subtitle">Игра приостановлена</p>
+            <button class="bigBtn" id="resumeBtn">▶️ ПРОДОЛЖИТЬ</button>
+        </div>
+        
+        <!-- Screamer -->
+        <div id="screamer" class="screamer">
+            <div id="screamerText">👻</div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // DOM элементы
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const startScreen = document.getElementById('startScreen');
+            const gameOverScreen = document.getElementById('gameOverScreen');
+            const victoryScreen = document.getElementById('victoryScreen');
+            const pauseScreen = document.getElementById('pauseScreen');
+            const screamer = document.getElementById('screamer');
+            const screamerText = document.getElementById('screamerText');
+            
+            const startBtn = document.getElementById('startBtn');
+            const restartBtn = document.getElementById('restartBtn');
+            const victoryRestartBtn = document.getElementById('victoryRestartBtn');
+            const resumeBtn = document.getElementById('resumeBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const legend = document.getElementById('legend');
+            const slowTimer = document.getElementById('slowTimer');
+            const slowTime = document.getElementById('slowTime');
+            
+            const scoreEl = document.getElementById('score');
+            const livesEl = document.getElementById('lives');
+            const levelEl = document.getElementById('level');
+            const finalScoreEl = document.getElementById('finalScore');
+            const finalLevelEl = document.getElementById('finalLevel');
+            
+            // Размеры canvas
+            let w, h;
+            
+            function resize() {
+                w = window.innerWidth;
+                h = window.innerHeight;
+                canvas.width = w;
+                canvas.height = h;
+            }
+            
+            window.addEventListener('resize', resize);
+            resize();
+            
+            // Игровые переменные
+            let gameState = 'start'; // start, playing, paused, gameOver, victory
+            let gameSpeed = 2;
+            let score = 0;
+            let lives = 3;
+            let level = 1;
+            let lastTime = 0;
+            
+            // Игрок
+            let player = {
+                x: 100,
+                y: h / 2,
+                width: 40,
+                height: 40,
+                vx: 0,
+                vy: 0,
+                jumpPower: -15,
+                gravity: 0.8,
+                onGround: false,
+                lane: 1, // 0 - верх, 1 - середина, 2 - низ
+                speed: 5,
+                maxSpeed: 8
+            };
+            
+            // Объекты
+            let obstacles = [];
+            let bonuses = [];
+            let debuffs = [];
+            let particles = [];
+            let bosses = [];
+            let speedSkulls = [];
+            
+            // Счетчики
+            let collectedBonuses = 0;
+            let countdownActive = false;
+            let countdownNumber = 0;
+            let countdownTime = 0;
+            
+            // Дебафы
+            let slowDebuffActive = false;
+            let slowDebuffTime = 0;
+            let slowDebuffDuration = 600; // 10 секунд при 60 FPS
+            
+            // Скримеры
+            let screamerActive = false;
+            let lastScreamerTime = 0;
+            let screamerCooldown = 15000; // 15 секунд
+            
+            // Уровни высот
+            const lanes = [
+                h * 0.25, // Верхний уровень
+                h * 0.5,   // Средний уровень
+                h * 0.75   // Нижний уровень
+            ];
+            
+            // Клавиши
+            let keys = {
+                space: false,
+                up: false,
+                down: false,
+                left: false,
+                right: false
+            };
+            
+            // Обработчики событий
+            startBtn.onclick = startGame;
+            restartBtn.onclick = restartGame;
+            victoryRestartBtn.onclick = restartGame;
+            resumeBtn.onclick = resumeGame;
+            pauseBtn.onclick = togglePause;
+            
+            // Клавиатура
+            window.addEventListener('keydown', (e) => {
+                if (gameState !== 'playing') return;
+                
+                switch(e.code) {
+                    case 'Space':
+                        e.preventDefault();
+                        if (!keys.space) {
+                            keys.space = true;
+                            jump();
+                        }
+                        break;
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        if (!keys.up) {
+                            keys.up = true;
+                            changeLane(-1);
+                        }
+                        break;
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        if (!keys.down) {
+                            keys.down = true;
+                            changeLane(1);
+                        }
+                        break;
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        keys.left = true;
+                        break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        keys.right = true;
+                        break;
+                }
+            });
+            
+            window.addEventListener('keyup', (e) => {
+                switch(e.code) {
+                    case 'Space':
+                        keys.space = false;
+                        break;
+                    case 'ArrowUp':
+                        keys.up = false;
+                        break;
+                    case 'ArrowDown':
+                        keys.down = false;
+                        break;
+                    case 'ArrowLeft':
+                        keys.left = false;
+                        break;
+                    case 'ArrowRight':
+                        keys.right = false;
+                        break;
+                }
+            });
+            
+            // Игровые функции
+            function startGame() {
+                gameState = 'playing';
+                startScreen.classList.add('hidden');
+                gameOverScreen.classList.add('hidden');
+                victoryScreen.classList.add('hidden');
+                pauseScreen.classList.add('hidden');
+                legend.style.display = 'block';
+                
+                // Сброс игры
+                score = 0;
+                lives = 3;
+                level = 1;
+                gameSpeed = 2;
+                obstacles = [];
+                bonuses = [];
+                debuffs = [];
+                particles = [];
+                bosses = [];
+                speedSkulls = [];
+                collectedBonuses = 0;
+                countdownActive = false;
+                slowDebuffActive = false;
+                slowDebuffTime = 0;
+                
+                // Сброс игрока
+                player.x = 100;
+                player.y = lanes[1];
+                player.vx = 0;
+                player.vy = 0;
+                player.lane = 1;
+                player.onGround = true;
+                
+                lastScreamerTime = 0;
+                screamerActive = false;
+                
+                updateHUD();
+                gameLoop();
+            }
+            
+            function restartGame() {
+                startGame();
+            }
+            
+            function resumeGame() {
+                gameState = 'playing';
+                pauseScreen.classList.add('hidden');
+                legend.style.display = 'block';
+                slowTimer.style.display = 'none';
+                gameLoop();
+            }
+            
+            function togglePause() {
+                if (gameState === 'playing') {
+                    gameState = 'paused';
+                    pauseScreen.classList.remove('hidden');
+                    legend.style.display = 'none';
+                } else if (gameState === 'paused') {
+                    resumeGame();
+                }
+            }
+            
+            function jump() {
+                if (player.onGround) {
+                    player.vy = player.jumpPower;
+                    player.onGround = false;
+                }
+            }
+            
+            function changeLane(direction) {
+                player.lane = Math.max(0, Math.min(2, player.lane + direction));
+                player.y = lanes[player.lane];
+            }
+            
+            function spawnObstacle() {
+                if (Math.random() < 0.012) { // Увеличили на 20%
+                    const lane = Math.floor(Math.random() * 3);
+                    obstacles.push({
+                        x: w,
+                        y: lanes[lane] - 15, // Ставим на линию, а не под ней
+                        width: 30,
+                        height: 30,
+                        type: 'skull',
+                        speed: gameSpeed + 1
+                    });
+                }
+            }
+            
+            function spawnBonus() {
+                if (Math.random() < 0.003) { // Еще больше уменьшили
+                    const lane = Math.floor(Math.random() * 3);
+                    const types = ['green', 'orange', 'purple', 'heart'];
+                    const type = types[Math.floor(Math.random() * types.length)];
+                    
+                    bonuses.push({
+                        x: w,
+                        y: lanes[lane] - 12, // Ставим на линию, а не под ней
+                        width: 25,
+                        height: 25,
+                        type: type,
+                        speed: gameSpeed
+                    });
+                }
+            }
+            
+            function spawnDebuff() {
+                if (Math.random() < 0.0025) { // Уменьшили в 2 раза
+                    const lane = Math.floor(Math.random() * 3);
+                    debuffs.push({
+                        x: w,
+                        y: lanes[lane] - 15, // Ставим на линию, а не под ней
+                        width: 30,
+                        height: 30,
+                        type: 'slow',
+                        speed: gameSpeed
+                    });
+                }
+            }
+            
+            function spawnBoss() {
+                if (score > 0 && score % 200 === 0 && bosses.length === 0 && !countdownActive) {
+                    startCountdown('boss');
+                }
+            }
+            
+            function spawnSpeedSkull() {
+                if (collectedBonuses > 0 && collectedBonuses % 10 === 0 && speedSkulls.length === 0 && !countdownActive) {
+                    startCountdown('speedSkull');
+                }
+            }
+            
+            function startCountdown(type) {
+                countdownActive = true;
+                countdownNumber = 3;
+                countdownTime = 0;
+                
+                // Сохраняем тип для после таймера
+                window.countdownType = type;
+            }
+            
+            function updateCountdown() {
+                if (!countdownActive) return;
+                
+                countdownTime++;
+                
+                if (countdownTime >= 60) { // 1 секунда при 60 FPS
+                    countdownNumber--;
+                    countdownTime = 0;
+                    
+                    if (countdownNumber <= 0) {
+                        countdownActive = false;
+                        
+                        // Спавн объекта после таймера
+                        if (window.countdownType === 'boss') {
+                            spawnBossObject();
+                        } else if (window.countdownType === 'speedSkull') {
+                            spawnSpeedSkullObject();
+                        }
+                    }
+                }
+            }
+            
+            function spawnBossObject() {
+                const lane = Math.floor(Math.random() * 3);
+                bosses.push({
+                    x: w,
+                    y: lanes[lane] - 75,
+                    width: 150,
+                    height: 150,
+                    type: 'boss',
+                    speed: gameSpeed + 0.5,
+                    health: 3
+                });
+            }
+            
+            function spawnSpeedSkullObject() {
+                const lane = Math.floor(Math.random() * 3);
+                speedSkulls.push({
+                    x: w,
+                    y: lanes[lane] - 75, // В 5 раз больше обычного
+                    width: 150,
+                    height: 150,
+                    type: 'speedSkull',
+                    speed: gameSpeed * 3 // В 3 раза быстрее
+                });
+            }
+            
+            function triggerScreamer() {
+                if (screamerActive) return;
+                
+                const now = Date.now();
+                if (now - lastScreamerTime < screamerCooldown) return;
+                
+                screamerActive = true;
+                lastScreamerTime = now;
+                
+                const types = ['red', 'black', 'white'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                const texts = ['👻', '💀', '😱', '👹', '🔥'];
+                const text = texts[Math.floor(Math.random() * texts.length)];
+                
+                screamer.className = `screamer ${type}`;
+                screamerText.textContent = text;
+                screamer.style.display = 'flex';
+                
+                setTimeout(() => {
+                    screamer.style.display = 'none';
+                    screamerActive = false;
+                }, 2000);
+            }
+            
+            function updatePlayer(dt) {
+                // Горизонтальное движение
+                let currentSpeed = player.speed;
+                
+                // Применяем дебаф SLOW
+                if (slowDebuffActive) {
+                    currentSpeed *= 0.3; // Замедляем на 70%
+                }
+                
+                if (keys.left) {
+                    player.vx = -currentSpeed;
+                } else if (keys.right) {
+                    player.vx = currentSpeed;
+                } else {
+                    player.vx *= 0.8; // Трение
+                }
+                
+                // Применение горизонтальной скорости
+                player.x += player.vx;
+                
+                // Ограничения экрана по горизонтали
+                player.x = Math.max(0, Math.min(w - player.width, player.x));
+                
+                // Гравитация
+                if (!player.onGround) {
+                    player.vy += player.gravity;
+                    player.y += player.vy;
+                    
+                    // Проверка приземления
+                    if (player.y >= lanes[player.lane]) {
+                        player.y = lanes[player.lane];
+                        player.vy = 0;
+                        player.onGround = true;
+                    }
+                }
+                
+                // Ограничения экрана по вертикали
+                player.y = Math.max(0, Math.min(h - player.height, player.y));
+            }
+            
+            function updateObjects(dt) {
+                // Обновление препятствий
+                for (let i = obstacles.length - 1; i >= 0; i--) {
+                    const obs = obstacles[i];
+                    obs.x -= obs.speed;
+                    
+                    // Удаление за экраном
+                    if (obs.x < -obs.width) {
+                        obstacles.splice(i, 1);
+                        continue;
+                    }
+                    
+                    // Проверка столкновения
+                    if (checkCollision(player, obs)) {
+                        lives--;
+                        obstacles.splice(i, 1);
+                        createParticles(obs.x, obs.y, '#ff4757');
+                        updateHUD(); // Обновляем HUD после изменения жизней
+                        
+                        if (lives <= 0) {
+                            gameOver();
+                            return;
+                        }
+                    }
+                }
+                
+                // Обновление боссов
+                for (let i = bosses.length - 1; i >= 0; i--) {
+                    const boss = bosses[i];
+                    boss.x -= boss.speed;
+                    
+                    // Удаление за экраном
+                    if (boss.x < -boss.width) {
+                        bosses.splice(i, 1);
+                        continue;
+                    }
+                    
+                    // Проверка столкновения с боссом
+                    if (checkCollision(player, boss)) {
+                        lives -= 2; // Босс отнимает 2 жизни
+                        boss.health--;
+                        createParticles(boss.x, boss.y, '#ff0000');
+                        updateHUD(); // Обновляем HUD после изменения жизней
+                        
+                        if (boss.health <= 0) {
+                            score += 100; // Бонус за убийство босса
+                            bosses.splice(i, 1);
+                            createParticles(boss.x, boss.y, '#4ade80');
+                            updateHUD(); // Обновляем HUD после изменения очков
+                        }
+                        
+                        if (lives <= 0) {
+                            gameOver();
+                            return;
+                        }
+                    }
+                }
+                
+                // Обновление бонусов
+                for (let i = bonuses.length - 1; i >= 0; i--) {
+                    const bonus = bonuses[i];
+                    bonus.x -= bonus.speed;
+                    
+                    if (bonus.x < -bonus.width) {
+                        bonuses.splice(i, 1);
+                        continue;
+                    }
+                    
+                    if (checkCollision(player, bonus)) {
+                        collectBonus(bonus);
+                        bonuses.splice(i, 1);
+                    }
+                }
+                
+                // Обновление дебафов
+                for (let i = debuffs.length - 1; i >= 0; i--) {
+                    const debuff = debuffs[i];
+                    debuff.x -= debuff.speed;
+                    
+                    if (debuff.x < -debuff.width) {
+                        debuffs.splice(i, 1);
+                        continue;
+                    }
+                    
+                    if (checkCollision(player, debuff)) {
+                        applyDebuff(debuff);
+                        debuffs.splice(i, 1);
+                    }
+                }
+                
+                // Обновление скоростных черепов
+                for (let i = speedSkulls.length - 1; i >= 0; i--) {
+                    const skull = speedSkulls[i];
+                    skull.x -= skull.speed;
+                    
+                    if (skull.x < -skull.width) {
+                        speedSkulls.splice(i, 1);
+                        continue;
+                    }
+                    
+                    if (checkCollision(player, skull)) {
+                        lives -= 3; // Скоростной череп отнимает 3 жизни
+                        speedSkulls.splice(i, 1);
+                        createParticles(skull.x, skull.y, '#ff0000');
+                        updateHUD();
+                        
+                        if (lives <= 0) {
+                            gameOver();
+                            return;
+                        }
+                    }
+                }
+            }
+            
+            function collectBonus(bonus) {
+                switch(bonus.type) {
+                    case 'green':
+                        score += 10;
+                        break;
+                    case 'orange':
+                        score += 25;
+                        break;
+                    case 'purple':
+                        score += 50;
+                        break;
+                    case 'heart':
+                        lives = Math.min(5, lives + 1);
+                        break;
+                }
+                
+                // Увеличиваем счетчик собранных бонусов
+                collectedBonuses++;
+                
+                createParticles(bonus.x, bonus.y, '#4ade80');
+                updateHUD();
+                
+                // Проверка победы
+                if (score >= 666) {
+                    victory();
+                }
+            }
+            
+            function applyDebuff(debuff) {
+                if (debuff.type === 'slow') {
+                    // Активируем дебаф SLOW на 10 секунд
+                    slowDebuffActive = true;
+                    slowDebuffTime = 0;
+                    createParticles(debuff.x, debuff.y, '#8b5cf6');
+                    
+                    // Показываем таймер
+                    slowTimer.style.display = 'flex';
+                }
+            }
+            
+            function updateSlowDebuff() {
+                if (slowDebuffActive) {
+                    slowDebuffTime++;
+                    
+                    // Обновляем таймер
+                    const remainingTime = Math.ceil((slowDebuffDuration - slowDebuffTime) / 60);
+                    slowTime.textContent = remainingTime;
+                    
+                    // Проверяем окончание дебафа
+                    if (slowDebuffTime >= slowDebuffDuration) {
+                        slowDebuffActive = false;
+                        slowDebuffTime = 0;
+                        slowTimer.style.display = 'none';
+                    }
+                }
+            }
+            
+            function createParticles(x, y, color) {
+                for (let i = 0; i < 10; i++) {
+                    particles.push({
+                        x: x,
+                        y: y,
+                        vx: (Math.random() - 0.5) * 10,
+                        vy: (Math.random() - 0.5) * 10,
+                        life: 30,
+                        color: color
+                    });
+                }
+            }
+            
+            function updateParticles() {
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life--;
+                    
+                    if (p.life <= 0) {
+                        particles.splice(i, 1);
+                    }
+                }
+            }
+            
+            function checkCollision(rect1, rect2) {
+                return rect1.x < rect2.x + rect2.width &&
+                       rect1.x + rect1.width > rect2.x &&
+                       rect1.y < rect2.y + rect2.height &&
+                       rect1.y + rect1.height > rect2.y;
+            }
+            
+            function updateHUD() {
+                scoreEl.textContent = score;
+                livesEl.textContent = lives;
+                levelEl.textContent = level;
+            }
+            
+            function gameOver() {
+                gameState = 'gameOver';
+                finalScoreEl.textContent = score;
+                finalLevelEl.textContent = level;
+                gameOverScreen.classList.remove('hidden');
+                legend.style.display = 'none';
+            }
+            
+            function victory() {
+                gameState = 'victory';
+                victoryScreen.classList.remove('hidden');
+                legend.style.display = 'none';
+            }
+            
+            function render() {
+                // Очистка canvas
+                ctx.clearRect(0, 0, w, h);
+                
+                // Фон с полосами уровней
+                ctx.fillStyle = 'rgba(255,107,53,0.1)';
+                for (let i = 0; i < 3; i++) {
+                    ctx.fillRect(0, lanes[i] - 2, w, 4);
+                }
+                
+                // Игрок - тыква
+                ctx.save();
+                const playerGradient = ctx.createRadialGradient(
+                    player.x + player.width/2, player.y + player.height/2, 0,
+                    player.x + player.width/2, player.y + player.height/2, player.width/2
+                );
+                playerGradient.addColorStop(0, '#ff6b35');
+                playerGradient.addColorStop(0.7, '#ff8e53');
+                playerGradient.addColorStop(1, '#ffa600');
+                ctx.fillStyle = playerGradient;
+                ctx.shadowColor = '#ff6b35';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(player.x + player.width/2, player.y + player.height/2, player.width/2, 0, 2*Math.PI);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Глаза тыквы
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(player.x + player.width/2 - 8, player.y + player.height/2 - 6, 3, 0, 2*Math.PI);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(player.x + player.width/2 + 8, player.y + player.height/2 - 6, 3, 0, 2*Math.PI);
+                ctx.fill();
+                
+                // Рот тыквы
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(player.x + player.width/2, player.y + player.height/2 + 4, 6, 0, Math.PI);
+                ctx.fill();
+                ctx.restore();
+                
+                // Препятствия
+                obstacles.forEach(obs => {
+                    ctx.save();
+                    ctx.fillStyle = '#ff4757';
+                    ctx.shadowColor = '#ff4757';
+                    ctx.shadowBlur = 8;
+                    ctx.beginPath();
+                    ctx.arc(obs.x + obs.width/2, obs.y + obs.height/2, obs.width/2, 0, 2*Math.PI);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    
+                    // Значок черепа
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('💀', obs.x + obs.width/2, obs.y + obs.height/2 + 5);
+                    ctx.restore();
+                });
+                
+                // Бонусы
+                bonuses.forEach(bonus => {
+                    ctx.save();
+                    let color = '#4ade80';
+                    let icon = '🟢';
+                    let text = '+10';
+                    
+                    switch(bonus.type) {
+                        case 'orange':
+                            color = '#ff6b35';
+                            icon = '🟠';
+                            text = '+25';
+                            break;
+                        case 'purple':
+                            color = '#8b5cf6';
+                            icon = '🟣';
+                            text = '+50';
+                            break;
+                        case 'heart':
+                            color = '#ff4757';
+                            icon = '❤️';
+                            text = '+1❤️';
+                            break;
+                    }
+                    
+                    ctx.fillStyle = color;
+                    ctx.shadowColor = color;
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.arc(bonus.x + bonus.width/2, bonus.y + bonus.height/2, bonus.width/2, 0, 2*Math.PI);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    
+                    // Значок и текст бонуса
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(icon, bonus.x + bonus.width/2, bonus.y + bonus.height/2 - 2);
+                    ctx.font = '8px Arial';
+                    ctx.fillText(text, bonus.x + bonus.width/2, bonus.y + bonus.height/2 + 8);
+                    ctx.restore();
+                });
+                
+                // Дебафы
+                debuffs.forEach(debuff => {
+                    ctx.save();
+                    ctx.fillStyle = '#8b5cf6';
+                    ctx.shadowColor = '#8b5cf6';
+                    ctx.shadowBlur = 8;
+                    ctx.beginPath();
+                    ctx.arc(debuff.x + debuff.width/2, debuff.y + debuff.height/2, debuff.width/2, 0, 2*Math.PI);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    
+                    // Значок и текст дебафа
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '14px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('🟣', debuff.x + debuff.width/2, debuff.y + debuff.height/2 - 2);
+                    ctx.font = '8px Arial';
+                    ctx.fillText('SLOW', debuff.x + debuff.width/2, debuff.y + debuff.height/2 + 8);
+                    ctx.restore();
+                });
+                
+                // Боссы
+                bosses.forEach(boss => {
+                    ctx.save();
+                    ctx.fillStyle = '#ff0000';
+                    ctx.shadowColor = '#ff0000';
+                    ctx.shadowBlur = 15;
+                    ctx.beginPath();
+                    ctx.arc(boss.x + boss.width/2, boss.y + boss.height/2, boss.width/2, 0, 2*Math.PI);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                    
+                    // Значок и текст босса
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '24px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('👹', boss.x + boss.width/2, boss.y + boss.height/2 - 5);
+                    ctx.font = '12px Arial';
+                    ctx.fillText('BOSS', boss.x + boss.width/2, boss.y + boss.height/2 + 15);
+                    
+                    // Полоска здоровья босса
+                    const healthBarWidth = boss.width;
+                    const healthBarHeight = 8;
+                    const healthBarX = boss.x;
+                    const healthBarY = boss.y - 20;
+                    
+                    ctx.fillStyle = 'rgba(255,0,0,0.3)';
+                    ctx.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
+                    ctx.fillStyle = '#4ade80';
+                    ctx.fillRect(healthBarX, healthBarY, healthBarWidth * (boss.health / 3), healthBarHeight);
+                    
+                    ctx.restore();
+                });
+                
+                // Скоростные черепы
+                speedSkulls.forEach(skull => {
+                    ctx.save();
+                    ctx.fillStyle = '#ff6600';
+                    ctx.shadowColor = '#ff6600';
+                    ctx.shadowBlur = 20;
+                    ctx.beginPath();
+                    ctx.arc(skull.x + skull.width/2, skull.y + skull.height/2, skull.width/2, 0, 2*Math.PI);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                    
+                    // Значок и текст скоростного черепа
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '24px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('💀', skull.x + skull.width/2, skull.y + skull.height/2 - 5);
+                    ctx.font = '12px Arial';
+                    ctx.fillText('SPEED', skull.x + skull.width/2, skull.y + skull.height/2 + 15);
+                    
+                    ctx.restore();
+                });
+                
+                // Таймер обратного отсчета
+                if (countdownActive) {
+                    ctx.save();
+                    ctx.fillStyle = '#ff6b35';
+                    ctx.font = 'bold 120px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.shadowColor = '#000';
+                    ctx.shadowBlur = 10;
+                    ctx.fillText(countdownNumber.toString(), w/2, h/2 + 40);
+                    ctx.shadowBlur = 0;
+                    ctx.restore();
+                }
+                
+                // Частицы
+                particles.forEach(p => {
+                    ctx.save();
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = p.life / 30;
+                    ctx.fillRect(p.x, p.y, 4, 4);
+                    ctx.restore();
+                });
+            }
+            
+            function gameLoop(currentTime = 0) {
+                if (gameState !== 'playing') return;
+                
+                const dt = (currentTime - lastTime) / 16.67; // Нормализация к 60 FPS
+                lastTime = currentTime;
+                
+                // Обновление игрока
+                updatePlayer(dt);
+                
+                // Спавн объектов
+                spawnObstacle();
+                spawnBonus();
+                spawnDebuff();
+                spawnBoss();
+                spawnSpeedSkull();
+                
+                // Обновление таймера
+                updateCountdown();
+                updateSlowDebuff();
+                
+                // Обновление объектов
+                updateObjects(dt);
+                updateParticles();
+                
+                // Скримеры
+                if (Math.random() < 0.001) {
+                    triggerScreamer();
+                }
+                
+                // Увеличение сложности
+                if (score > 0 && score % 100 === 0) {
+                    gameSpeed += 0.1;
+                    level = Math.floor(score / 100) + 1;
+                    updateHUD();
+                }
+                
+                // Рендер
+                render();
+                
+                // Следующий кадр
+                requestAnimationFrame(gameLoop);
+            }
+            
+            // Инициализация
+            updateHUD();
+        })();
+    </script>
+</body>
+</html>
