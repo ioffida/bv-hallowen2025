@@ -200,6 +200,39 @@
             font-weight: bold;
         }
         
+        .blackTimer {
+            position: absolute;
+            top: 20px;
+            right: 200px;
+            z-index: 5;
+            background: rgba(0,0,0,0.9);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 2px solid #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 60px;
+        }
+        
+        .blackIcon {
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+        
+        .blackText {
+            color: #fff;
+            font-size: 10px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        
+        .blackTime {
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
         .screamer {
             position: absolute;
             top: 0;
@@ -250,20 +283,26 @@
             <div class="slowTime" id="slowTime">10</div>
         </div>
         
+        <!-- Black Debuff Timer -->
+        <div class="blackTimer" id="blackTimer" style="display: none;">
+            <div class="blackIcon">⚫</div>
+            <div class="blackText">BLOCK</div>
+            <div class="blackTime" id="blackTime">15</div>
+        </div>
+        
         <!-- Legend -->
         <div class="legend" id="legend">
-            [🎮 ОБЪЕКТЫ] [🟢+10] [🟠+25] [🟣+50] [❤️+1❤️] [💀-1❤️] [🟣SLOW] [👹BOSS]
+            [🎮 ОБЪЕКТЫ] [🟢+10] [🟠+25] [🟣+30] [❤️+1❤️] [💀-1❤️] [🟣SLOW] [👹BOSS] [⚫BLOCK]
         </div>
         
         <!-- Start Screen -->
         <div id="startScreen" class="overlay">
             <h1>🏃‍♂️ HALLOWEEN RUNNER 🏃‍♂️</h1>
-            <p class="subtitle">Беги, прыгай, выживай!</p>
+            <p class="subtitle">Беги, выживай!</p>
             
             <div class="rules">
                 <h3>🎮 Управление:</h3>
                 <ul>
-                    <li><b>Пробел</b> - прыжок</li>
                     <li><b>↑</b> - верхний уровень</li>
                     <li><b>↓</b> - нижний уровень</li>
                     <li><b>←</b> - движение влево</li>
@@ -282,15 +321,25 @@
                 <ul>
                     <li><span style="color:#4ade80;">🟢 Зеленые</span> - +10 очков</li>
                     <li><span style="color:#ff6b35;">🟠 Оранжевые</span> - +25 очков</li>
-                    <li><span style="color:#8b5cf6;">🟣 Фиолетовые</span> - +50 очков</li>
+                    <li><span style="color:#8b5cf6;">🟣 Фиолетовые</span> - +30 очков</li>
                     <li><span style="color:#ff4757;">❤️ Сердца</span> - +1 жизнь</li>
                 </ul>
                 
                 <h3>⚠️ Опасности:</h3>
                 <ul>
                     <li><span style="color:#ff4757;">💀 Черепа</span> - -1 жизнь</li>
-                    <li><span style="color:#8b5cf6;">🟣 Дебафы</span> - замедление</li>
+                    <li><span style="color:#ff6600;">💀 Скоростные черепа</span> - каждые 50 очков, -3 жизни</li>
+                    <li><span style="color:#ff0000;">👹 Боссы</span> - каждые 200 очков, -2 жизни</li>
+                    <li><span style="color:#8b5cf6;">🟣 SLOW</span> - замедление на 10 сек</li>
+                    <li><span style="color:#000;">⚫ BLOCK</span> - блокирует линию на 15 сек</li>
                     <li><span style="color:#ff0000;">👻 Скримеры</span> - пугающие эффекты</li>
+                </ul>
+                
+                <h3>⏰ Особенности:</h3>
+                <ul>
+                    <li>Таймеры 3-2-1 перед опасностями</li>
+                    <li>Отключенные линии становятся красными</li>
+                    <li>Нельзя переключиться на отключенную линию</li>
                 </ul>
             </div>
             
@@ -353,6 +402,8 @@
             const legend = document.getElementById('legend');
             const slowTimer = document.getElementById('slowTimer');
             const slowTime = document.getElementById('slowTime');
+            const blackTimer = document.getElementById('blackTimer');
+            const blackTime = document.getElementById('blackTime');
             
             const scoreEl = document.getElementById('score');
             const livesEl = document.getElementById('lives');
@@ -416,6 +467,12 @@
             let slowDebuffTime = 0;
             let slowDebuffDuration = 600; // 10 секунд при 60 FPS
             
+            // Черный дебаф
+            let blackDebuffActive = false;
+            let blackDebuffTime = 0;
+            let blackDebuffDuration = 900; // 15 секунд при 60 FPS
+            let disabledLane = -1; // -1 = нет отключенной линии, 0-2 = номер линии
+            
             // Скримеры
             let screamerActive = false;
             let lastScreamerTime = 0;
@@ -430,7 +487,6 @@
             
             // Клавиши
             let keys = {
-                space: false,
                 up: false,
                 down: false,
                 left: false,
@@ -451,10 +507,7 @@
                 switch(e.code) {
                     case 'Space':
                         e.preventDefault();
-                        if (!keys.space) {
-                            keys.space = true;
-                            jump();
-                        }
+                        // Прыжок убран
                         break;
                     case 'ArrowUp':
                         e.preventDefault();
@@ -484,7 +537,7 @@
             window.addEventListener('keyup', (e) => {
                 switch(e.code) {
                     case 'Space':
-                        keys.space = false;
+                        // Прыжок убран
                         break;
                     case 'ArrowUp':
                         keys.up = false;
@@ -525,6 +578,9 @@
                 countdownActive = false;
                 slowDebuffActive = false;
                 slowDebuffTime = 0;
+                blackDebuffActive = false;
+                blackDebuffTime = 0;
+                disabledLane = -1;
                 
                 // Сброс игрока
                 player.x = 100;
@@ -563,21 +619,34 @@
                 }
             }
             
-            function jump() {
-                if (player.onGround) {
-                    player.vy = player.jumpPower;
-                    player.onGround = false;
-                }
-            }
+            // Функция прыжка убрана
             
             function changeLane(direction) {
-                player.lane = Math.max(0, Math.min(2, player.lane + direction));
+                const newLane = Math.max(0, Math.min(2, player.lane + direction));
+                
+                // Проверяем, не отключена ли новая линия
+                if (disabledLane === newLane) {
+                    return; // Не переключаемся на отключенную линию
+                }
+                
+                player.lane = newLane;
                 player.y = lanes[player.lane];
             }
             
             function spawnObstacle() {
                 if (Math.random() < 0.012) { // Увеличили на 20%
-                    const lane = Math.floor(Math.random() * 3);
+                    let lane = Math.floor(Math.random() * 3);
+                    
+                    // Если линия отключена, выбираем другую
+                    if (disabledLane === lane) {
+                        const availableLanes = [0, 1, 2].filter(l => l !== disabledLane);
+                        if (availableLanes.length > 0) {
+                            lane = availableLanes[Math.floor(Math.random() * availableLanes.length)];
+                        } else {
+                            return; // Все линии отключены
+                        }
+                    }
+                    
                     obstacles.push({
                         x: w,
                         y: lanes[lane] - 15, // Ставим на линию, а не под ней
@@ -591,7 +660,18 @@
             
             function spawnBonus() {
                 if (Math.random() < 0.003) { // Еще больше уменьшили
-                    const lane = Math.floor(Math.random() * 3);
+                    let lane = Math.floor(Math.random() * 3);
+                    
+                    // Если линия отключена, выбираем другую
+                    if (disabledLane === lane) {
+                        const availableLanes = [0, 1, 2].filter(l => l !== disabledLane);
+                        if (availableLanes.length > 0) {
+                            lane = availableLanes[Math.floor(Math.random() * availableLanes.length)];
+                        } else {
+                            return; // Все линии отключены
+                        }
+                    }
+                    
                     const types = ['green', 'orange', 'purple', 'heart'];
                     const type = types[Math.floor(Math.random() * types.length)];
                     
@@ -608,7 +688,18 @@
             
             function spawnDebuff() {
                 if (Math.random() < 0.0025) { // Уменьшили в 2 раза
-                    const lane = Math.floor(Math.random() * 3);
+                    let lane = Math.floor(Math.random() * 3);
+                    
+                    // Если линия отключена, выбираем другую
+                    if (disabledLane === lane) {
+                        const availableLanes = [0, 1, 2].filter(l => l !== disabledLane);
+                        if (availableLanes.length > 0) {
+                            lane = availableLanes[Math.floor(Math.random() * availableLanes.length)];
+                        } else {
+                            return; // Все линии отключены
+                        }
+                    }
+                    
                     debuffs.push({
                         x: w,
                         y: lanes[lane] - 15, // Ставим на линию, а не под ней
@@ -627,8 +718,14 @@
             }
             
             function spawnSpeedSkull() {
-                if (collectedBonuses > 0 && collectedBonuses % 10 === 0 && speedSkulls.length === 0 && !countdownActive) {
+                if (score > 0 && score % 50 === 0 && speedSkulls.length === 0 && !countdownActive) {
                     startCountdown('speedSkull');
+                }
+            }
+            
+            function spawnBlackDebuff() {
+                if (score > 0 && score % 75 === 0 && !blackDebuffActive && !countdownActive) {
+                    startCountdown('blackDebuff');
                 }
             }
             
@@ -658,6 +755,8 @@
                             spawnBossObject();
                         } else if (window.countdownType === 'speedSkull') {
                             spawnSpeedSkullObject();
+                        } else if (window.countdownType === 'blackDebuff') {
+                            activateBlackDebuff();
                         }
                     }
                 }
@@ -684,8 +783,15 @@
                     width: 150,
                     height: 150,
                     type: 'speedSkull',
-                    speed: gameSpeed * 3 // В 3 раза быстрее
+                    speed: gameSpeed * 4 // В 4 раза быстрее (100% быстрее босса)
                 });
+            }
+            
+            function activateBlackDebuff() {
+                blackDebuffActive = true;
+                blackDebuffTime = 0;
+                disabledLane = Math.floor(Math.random() * 3); // Случайная линия
+                blackTimer.style.display = 'flex';
             }
             
             function triggerScreamer() {
@@ -875,7 +981,7 @@
                         score += 25;
                         break;
                     case 'purple':
-                        score += 50;
+                        score += 30;
                         break;
                     case 'heart':
                         lives = Math.min(5, lives + 1);
@@ -919,6 +1025,24 @@
                         slowDebuffActive = false;
                         slowDebuffTime = 0;
                         slowTimer.style.display = 'none';
+                    }
+                }
+            }
+            
+            function updateBlackDebuff() {
+                if (blackDebuffActive) {
+                    blackDebuffTime++;
+                    
+                    // Обновляем таймер
+                    const remainingTime = Math.ceil((blackDebuffDuration - blackDebuffTime) / 60);
+                    blackTime.textContent = remainingTime;
+                    
+                    // Проверяем окончание дебафа
+                    if (blackDebuffTime >= blackDebuffDuration) {
+                        blackDebuffActive = false;
+                        blackDebuffTime = 0;
+                        disabledLane = -1;
+                        blackTimer.style.display = 'none';
                     }
                 }
             }
@@ -983,6 +1107,12 @@
                 // Фон с полосами уровней
                 ctx.fillStyle = 'rgba(255,107,53,0.1)';
                 for (let i = 0; i < 3; i++) {
+                    // Проверяем, не отключена ли линия
+                    if (disabledLane === i) {
+                        ctx.fillStyle = 'rgba(255,0,0,0.3)'; // Красная для отключенной линии
+                    } else {
+                        ctx.fillStyle = 'rgba(255,107,53,0.1)';
+                    }
                     ctx.fillRect(0, lanes[i] - 2, w, 4);
                 }
                 
@@ -1132,8 +1262,8 @@
                     ctx.fillStyle = '#fff';
                     ctx.font = '24px Arial';
                     ctx.textAlign = 'center';
-                    ctx.fillText('👹', boss.x + boss.width/2, boss.y + boss.height/2 - 5);
-                    ctx.font = '12px Arial';
+                    ctx.fillText('💀', boss.x + boss.width/2, boss.y + boss.height/2 - 5);
+                    ctx.font = 'bold 16px Arial';
                     ctx.fillText('BOSS', boss.x + boss.width/2, boss.y + boss.height/2 + 15);
                     
                     // Полоска здоровья босса
@@ -1213,10 +1343,12 @@
                 spawnDebuff();
                 spawnBoss();
                 spawnSpeedSkull();
+                spawnBlackDebuff();
                 
                 // Обновление таймера
                 updateCountdown();
                 updateSlowDebuff();
+                updateBlackDebuff();
                 
                 // Обновление объектов
                 updateObjects(dt);
