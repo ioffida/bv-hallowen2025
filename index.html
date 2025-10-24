@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎃 Halloween Games 2025</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 4px 12px rgba(255,107,53,0.4);
+            color: #ff6b35;
+        }
+        
+        .subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 3rem;
+            color: #ffa600;
+        }
+        
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .game-card {
+            background: linear-gradient(145deg, rgba(255,107,53,0.1), rgba(26,26,46,0.3));
+            border: 2px solid rgba(255,107,53,0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .game-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(255,107,53,0.2);
+            border-color: rgba(255,107,53,0.6);
+        }
+        
+        .game-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #ff6b35;
+        }
+        
+        .game-description {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            color: #ccc;
+        }
+        
+        .game-features {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+        
+        .game-features li {
+            padding: 0.5rem 0;
+            color: #4ade80;
+        }
+        
+        .game-features li:before {
+            content: "🎮 ";
+            margin-right: 0.5rem;
+        }
+        
+        .play-button {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(145deg, #ff6b35, #ff8e53);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(255,107,53,0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .play-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(255,107,53,0.4);
+        }
+        
+        .footer {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            border: 1px solid rgba(255,107,53,0.2);
+        }
+        
+        .footer p {
+            color: #ffa600;
+            font-size: 1.1rem;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎃 HALLOWEEN GAMES 2025 🎃</h1>
+        <p class="subtitle">Три ужасающие игры на одну ночь!</p>
+        
+        <div class="games-grid">
+            <!-- Игра 1 -->
+            <div class="game-card">
+                <h2 class="game-title">🎮 Аркадный Шутер</h2>
+                <p class="game-description">
+                    Классический аркадный шутер с элементами хоррора. 
+                    Сражайтесь с врагами, собирайте бонусы и избегайте дебафов!
+                </p>
+                <ul class="game-features">
+                    <li>Автоматическая стрельба</li>
+                    <li>Система бонусов и дебафов</li>
+                    <li>Скримеры для атмосферы</li>
+                    <li>Боссы и аптечки</li>
+                    <li>Цель: 666 очков</li>
+                </ul>
+                <a href="game1.html" class="play-button">🚀 ИГРАТЬ</a>
+            </div>
+            
+            <!-- Игра 2 -->
+            <div class="game-card">
+                <h2 class="game-title">🏃‍♂️ Платформер 666 Jump</h2>
+                <p class="game-description">
+                    Динамичный платформер с тыквой-персонажем. 
+                    Прыгайте по платформам, собирайте бонусы и уворачивайтесь от лазеров!
+                </p>
+                <ul class="game-features">
+                    <li>Физика прыжков</li>
+                    <li>Бонусы и дебафы</li>
+                    <li>Босс с лазерами</li>
+                    <li>Красные опасные платформы</li>
+                    <li>Цель: 666 очков</li>
+                </ul>
+                <a href="game2.html" class="play-button">🚀 ИГРАТЬ</a>
+            </div>
+            
+            <!-- Игра 3 -->
+            <div class="game-card">
+                <h2 class="game-title">🎯 Конструктор Тыкв</h2>
+                <p class="game-description">
+                    Уникальный конструктор с падающими тыквами. 
+                    Ловите тыквы, избегайте призраков и собирайте бонусы!
+                </p>
+                <ul class="game-features">
+                    <li>Система уровней</li>
+                    <li>Падающие объекты</li>
+                    <li>Бонусы и дебафы</li>
+                    <li>Скримеры</li>
+                    <li>Цель: 666 очков</li>
+                </ul>
+                <a href="game3.html" class="play-button">🚀 ИГРАТЬ</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>🎃 Создано для Halloween 2025 | Все игры работают в браузере 🎃</p>
+        </div>
+    </div>
+</body>
+</html>

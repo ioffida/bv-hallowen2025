@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>666 Jump: победа+правила+пауза+png-персонаж</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <style>
+    html,body{margin:0;padding:0;width:100vw;height:100vh;background:linear-gradient(135deg,#0a0a0a,#1a1a2e,#16213e);}
+    #gameCanvas{display:block;width:100vw;height:100vh;background:linear-gradient(180deg,#0f0f23 0%,#1a1a2e 50%,#16213e 100%);}
+    .overlay{position:absolute;left:0;top:0;width:100vw;height:100vh;z-index:99;
+      background:linear-gradient(135deg,rgba(0,0,0,0.9),rgba(26,26,46,0.95));color:#fff;display:none;
+      flex-direction:column;align-items:center;justify-content:center;text-align:center;
+      backdrop-filter:blur(10px);}
+    .bigBtn{padding:18px 40px;font-size:24px;border:none;
+      background:linear-gradient(145deg,#ff6b35,#ff8e53);color:#fff;border-radius:12px;margin-top:20px;
+      cursor:pointer;box-shadow:0 8px 20px rgba(255,107,53,0.3);
+      transition:all 0.3s ease;font-weight:bold;text-transform:uppercase;letter-spacing:1px;}
+    .bigBtn:hover{transform:translateY(-2px);box-shadow:0 12px 25px rgba(255,107,53,0.4);}
+    .bigBtn:active{transform:translateY(0);box-shadow:0 4px 10px rgba(255,107,53,0.3);}
+    #btnPause{position:absolute;right:20px;top:20px;z-index:50;padding:12px 24px;font-size:18px;
+      background:linear-gradient(145deg,#444,#666);color:#fff;border:none;border-radius:10px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.3);transition:all 0.2s ease;cursor:pointer;}
+    #btnPause:hover{background:linear-gradient(145deg,#555,#777);transform:translateY(-1px);}
+    #gameOver h1,#gameWin h1{margin-bottom:12px;font-size:48px;text-shadow:0 4px 8px rgba(0,0,0,0.5);}
+    #gameWin h1{color:#4ade80;text-shadow:0 4px 12px rgba(74,222,128,0.4);}
+    #overlayPause{z-index:199;}
+    .score-display{position:absolute;left:20px;top:20px;z-index:50;color:#4ade80;font-size:24px;font-weight:bold;
+      text-shadow:0 2px 4px rgba(0,0,0,0.5);}
+    .hp-display{position:absolute;left:20px;top:60px;z-index:50;color:#ff6b35;font-size:20px;font-weight:bold;
+      text-shadow:0 2px 4px rgba(0,0,0,0.5);}
+    .heart{color:#ff4757;font-size:24px;margin-right:5px;text-shadow:0 2px 4px rgba(255,71,87,0.5);}
+    @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
+    .pulse{animation:pulse 1s infinite;}
+    @keyframes glow{0%,100%{text-shadow:0 0 5px currentColor;}50%{text-shadow:0 0 20px currentColor,0 0 30px currentColor;}}
+    .glow{animation:glow 2s infinite;}
+  </style>
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+<div class="score-display" id="scoreDisplay" style="display:none;">Очки: <span id="scoreValue">0</span></div>
+<div class="hp-display" id="hpDisplay" style="display:none;">
+  <span class="heart">❤️</span><span id="hpValue">3</span>
+</div>
+<button id="btnPause" style="display:none;">⏸️ Пауза</button>
+<div id="overlayStart" class="overlay" style="display:flex;">
+  <h1 style="color:#ff6b35;font-size:48px;text-shadow:0 4px 12px rgba(255,107,53,0.4);margin-bottom:20px;" class="glow">🎃 666 JUMP 🎃</h1>
+  <div style="font-size:20px;margin-bottom:30px;line-height:1.6;max-width:600px;">
+    <div style="background:rgba(255,107,53,0.1);padding:20px;border-radius:12px;border:2px solid rgba(255,107,53,0.3);margin-bottom:20px;">
+      <b style="color:#ff6b35;">🎯 ЦЕЛЬ:</b> набрать <span style="color:#4ade80;font-weight:bold;">666 очков</span><br>
+      <b style="color:#ff6b35;">🎮 УПРАВЛЕНИЕ:</b> ← → / кнопки / мышь (прыжок по клику)
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;text-align:left;">
+      <div style="background:rgba(74,222,128,0.1);padding:15px;border-radius:8px;border:1px solid rgba(74,222,128,0.3);">
+        <b style="color:#4ade80;">⭐ БОНУСЫ:</b><br>
+        Появляются на платформах<br>
+        <span style="color:#4ade80;">+1/+5/+10/+25 очков</span>
+      </div>
+      <div style="background:rgba(255,71,87,0.1);padding:15px;border-radius:8px;border:1px solid rgba(255,71,87,0.3);">
+        <b style="color:#ff4757;">💀 ОПАСНОСТИ:</b><br>
+        Красные платформы (20сек)<br>
+        Лазеры босса
+      </div>
+    </div>
+    <div style="margin-top:20px;color:#ffa600;font-size:18px;">
+      <b>❤️ Жизни: 3</b> | <b>🎯 Собери 666 очков!</b>
+    </div>
+  </div>
+  <button class="bigBtn pulse" id="btnStart">🚀 СТАРТ</button>
+</div>
+<div id="gameOver" class="overlay">
+  <h1 id="goTitle" style="color:#ff4757;">💀 ПРОИГРЫШ 💀</h1>
+  <div style="margin:20px 0;font-size:28px;color:#ffa600;">
+    <div style="background:rgba(255,71,87,0.1);padding:15px;border-radius:8px;border:1px solid rgba(255,71,87,0.3);">
+      Счёт: <span id="goScore" style="color:#4ade80;font-weight:bold;">0</span>
+    </div>
+  </div>
+  <button class="bigBtn" id="goRestart">🔄 ЗАНОВО</button>
+</div>
+<div id="gameWin" class="overlay">
+  <h1 style="color:#4ade80;" class="glow">🎉 ПОБЕДА! 🎉</h1>
+  <div style="margin:20px 0;font-size:32px;color:#4ade80;">
+    <div style="background:rgba(74,222,128,0.1);padding:20px;border-radius:12px;border:2px solid rgba(74,222,128,0.3);">
+      🎃 Ты набрал <span style="color:#ff6b35;font-weight:bold;">666 очков</span>! 🎃
+    </div>
+  </div>
+  <button class="bigBtn pulse" id="winRestart">🎮 СЫГРАТЬ ЕЩЁ</button>
+</div>
+<div id="overlayPause" class="overlay">
+  <h1 style="color:#ff6b35;">⏸️ ПАУЗА</h1>
+  <div style="margin:20px 0;font-size:20px;color:#ffa600;">
+    Игра приостановлена
+  </div>
+  <button class="bigBtn" id="btnResumePause">▶️ ПРОДОЛЖИТЬ</button>
+</div>
+<script>
+(function(){// ==== Персонаж PNG ====
+  const heroImg = new window.Image();
+  heroImg.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9IiNGRjY2MDAiLz4KPGNpcmNsZSBjeD0iMjQiIGN5PSIyOCIgcj0iNCIgZmlsbD0iIzAwMDAwMCIvPgo8Y2lyY2xlIGN4PSI0MCIgY3k9IjI4IiByPSI0IiBmaWxsPSIjMDAwMDAwIi8+CjxwYXRoIGQ9Ik0yMCA0MEMyMCAzNiAyNCAzMiAzMiAzMkMzNiAzMiA0MCAzNiA0MCA0MEw0MCA0NEM0MCA0OCAzNiA1MiAzMiA1MkMyOCA1MiAyNCA0OCAyNCA0NEwyMCA0MFoiIGZpbGw9IiMwMDAwMDAiLz4KPC9zdmc+";
+  // --- DOM
+  const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
+  const oStart=document.getElementById('overlayStart');
+  const oOver=document.getElementById('gameOver'), oWin=document.getElementById('gameWin');
+  const oPause=document.getElementById('overlayPause');
+  const btnRestart=document.getElementById('goRestart'), btnStart=document.getElementById('btnStart');
+  const btnWinRestart=document.getElementById('winRestart'), btnPause=document.getElementById('btnPause');
+  const btnResumePause=document.getElementById('btnResumePause');
+  const scoreDisplay=document.getElementById('scoreDisplay'), scoreValue=document.getElementById('scoreValue');
+  const hpDisplay=document.getElementById('hpDisplay'), hpValue=document.getElementById('hpValue');
+  let w=window.innerWidth, h=window.innerHeight; function resize(){w=window.innerWidth;h=window.innerHeight;canvas.width=w;canvas.height=h;}resize(); window.addEventListener('resize',resize);
+
+  const gravity=900,jumpV=-500,playerR=24,runSpeed=230,platformW=110,platformH=14;
+  let maxJumpHeight=Math.pow(Math.abs(jumpV),2)/(2*gravity);
+  let jumpTime=2*Math.abs(jumpV)/gravity,maxJumpDX=runSpeed*jumpTime*0.95;
+  let minStepY=maxJumpHeight*0.8,maxStepY=maxJumpHeight*0.97;
+
+  // --- State
+  let player, platforms, bonuses, score, keys, bullets, boss, bossTimer, bonusTimer, redPlatIdx, redPlatActive, redPlatTimer, hp, lose, win, bonusId=0, running=false, pause=false;
+  const bonusTypes=[{color:'#10f0',value:1},{color:'#ffa600',value:5},{color:'#0af866',value:10},{color:'#d11fff',value:25}];
+  function reset() {
+    platforms = [];
+    let y = h - 50;
+    let x = w/2 - platformW/2;
+    platforms.push({x: x, y: y, w: platformW, h: platformH, red: false});
+    
+    for(let i = 1; y > platformH + 40 && i < 25; i++) {
+      let prev = platforms[i-1];
+      let stepY = Math.random() * (maxStepY - minStepY) + minStepY;
+      y -= stepY;
+      let minX = Math.max(20, prev.x - maxJumpDX);
+      let maxX = Math.min(w - platformW - 20, prev.x + maxJumpDX);
+      let x = Math.random() * (maxX - minX) + minX;
+      platforms.push({x: x, y: y, w: platformW, h: platformH, red: false});
+    }
+    
+    player = {
+      x: platforms[0].x + platformW/2,
+      y: platforms[0].y - playerR - 1,
+      r: playerR,
+      vy: 0,
+      vx: 0
+    };
+    
+    // Проверяем, что персонаж создан правильно
+    if(!player || player.x === undefined || player.y === undefined) {
+      console.error('Ошибка создания персонажа!');
+      player = {x: w/2, y: h/2, r: playerR, vy: 0, vx: 0};
+    }
+    
+    keys = {left: false, right: false};
+    bonuses = [];
+    bonusId = 0;
+    score = 0;
+    bullets = [];
+    boss = {x: w/2 - 50, y: 6, w: 100, h: 45};
+    bossTimer = 0;
+    hp = 3;
+    lose = win = false;
+    
+    for(let i = 0; i < 3; i++) {
+      spawnBonusNow();
+    }
+    
+    bonusTimer = 0;
+    redPlatTimer = -15;
+    redPlatIdx = null;
+    redPlatActive = false;
+  }
+  
+  function spawnBonusNow() {
+    let t = bonusTypes[Math.floor(Math.random() * bonusTypes.length)];
+    let p = platforms[Math.floor(Math.random() * platforms.length)];
+    bonuses.push({
+      id: ++bonusId,
+      x: p.x + p.w/2,
+      y: p.y - 22,
+      r: 18,
+      color: t.color,
+      value: t.value,
+      born: performance.now()
+    });
+  }
+  
+  function startGame() {
+    running = true;
+    lose = win = pause = false;
+    oStart.style.display = "none";
+    oOver.style.display = "none";
+    oWin.style.display = "none";
+    oPause.style.display = "none";
+    btnPause.style.display = "block";
+    scoreDisplay.style.display = "block";
+    hpDisplay.style.display = "block";
+    reset();
+    updateUI();
+    lastTime = performance.now();
+    loop();
+  }
+  
+  // Обработчики событий
+  btnStart.onclick = startGame;
+  
+  btnRestart.onclick = () => {
+    oOver.style.display = "none";
+    oStart.style.display = "flex";
+    btnPause.style.display = "none";
+    running = false;
+  };
+  
+  btnWinRestart.onclick = () => {
+    oWin.style.display = "none";
+    oStart.style.display = "flex";
+    btnPause.style.display = "none";
+    running = false;
+  };
+  
+  btnPause.onclick = () => {
+    if(pause || !running) return;
+    pause = true;
+    oPause.style.display = "flex";
+    btnPause.innerText = "Продолжить";
+  };
+  
+  btnResumePause.onclick = () => {
+    if(!pause) return;
+    pause = false;
+    oPause.style.display = "none";
+    btnPause.innerText = "Пауза";
+    lastTime = performance.now();
+    loop();
+  };
+
+  // === Геймцикл ===
+  let lastTime = performance.now();
+  
+  function loop(now = performance.now()) {
+    if(!running || pause) return;
+    
+    let dt = Math.min((now - lastTime) || 16, 40) / 1000;
+    lastTime = now;
+    
+    // --- Тайминги
+    bonusTimer += dt;
+    if(bonusTimer > 10) {
+      spawnBonusNow();
+      bonusTimer = 0;
+    }
+    bossTimer += dt;
+    redPlatTimer += dt;
+
+    // --- Красная платформа
+    if(redPlatTimer > 20) {
+      if(redPlatIdx !== null) {
+        platforms[redPlatIdx].red = false;
+      }
+      let idx;
+      do {
+        idx = Math.floor(Math.random() * platforms.length);
+      } while(idx === redPlatIdx);
+      redPlatIdx = idx;
+      platforms[redPlatIdx].red = true;
+      redPlatActive = true;
+      redPlatTimer = 0;
+    }
+    
+    if(redPlatActive && redPlatTimer > 5) {
+      platforms[redPlatIdx].red = false;
+      redPlatIdx = null;
+      redPlatActive = false;
+    }
+    
+    // Управление
+    player.vx = 0;
+    if(keys.left) player.vx = -runSpeed;
+    if(keys.right) player.vx = runSpeed;
+    player.x += player.vx * dt;
+    player.x = Math.max(player.r, Math.min(w - player.r, player.x));
+    player.vy += gravity * dt;
+    player.y += player.vy * dt;
+    
+    // Движение персонажа
+
+    // Столкновения с платформами
+    for(let p of platforms) {
+      if(player.vy >= 0 && 
+         player.y + player.r > p.y - platformH/2 - 2 &&
+         player.y + player.r < p.y + platformH/2 + 8 &&
+         player.x > p.x && player.x < p.x + p.w) {
+        if(p.red) {
+          death('Красная платформа');
+          return;
+        }
+        player.y = p.y - platformH/2 - player.r;
+        player.vy = 0;
+      }
+    }
+    
+    if(player.y > h - player.r) {
+      player.y = h - player.r;
+      player.vy = 0;
+    }
+    
+    // --- Бонусы
+    bonuses = bonuses.filter(b => now - b.born < 18000);
+    for(let i = bonuses.length - 1; i >= 0; i--) {
+      let b = bonuses[i];
+      if(Math.hypot(player.x - b.x, player.y - b.y) < player.r + b.r) {
+        score += b.value;
+        bonuses.splice(i, 1);
+        updateUI();
+        if(score >= 666) {
+          winScreen();
+          return;
+        }
+      }
+    }
+    
+    // --- Лазеры босса
+    if(bossTimer > 1.2) {
+      bossTimer = 0;
+      let dx = player.x - (boss.x + boss.w/2);
+      let dy = player.y - (boss.y + boss.h);
+      let len = Math.sqrt(dx*dx + dy*dy);
+      let vx = dx/len * 233; // Замедлено на 30% (333 * 0.7 = 233)
+      let vy = dy/len * 233;
+      bullets.push({
+        x: boss.x + boss.w/2,
+        y: boss.y + boss.h,
+        vx: vx,
+        vy: vy,
+        r: 13
+      });
+    }
+    
+    for(let i = bullets.length - 1; i >= 0; i--) {
+      let b = bullets[i];
+      b.x += b.vx * dt;
+      b.y += b.vy * dt;
+      if(b.x < -40 || b.x > w + 40 || b.y > h + 40 || b.y < -40) {
+        bullets.splice(i, 1);
+        continue;
+      }
+      if(Math.hypot(player.x - b.x, player.y - b.y) < player.r + b.r) {
+        bullets.splice(i, 1);
+        hp--;
+        updateUI();
+        if(hp <= 0) {
+          death('Игра пройдена. Вопрос: капукпкпкпукпук');
+          return;
+        }
+      }
+    }// --- Рендер
+    ctx.clearRect(0,0,w,h);
+    // Boss с улучшенной визуализацией
+    ctx.save();
+    const bossGradient = ctx.createLinearGradient(boss.x, boss.y, boss.x, boss.y + boss.h);
+    bossGradient.addColorStop(0, '#ff4757');
+    bossGradient.addColorStop(0.5, '#c44569');
+    bossGradient.addColorStop(1, '#8b2635');
+    ctx.fillStyle = bossGradient;
+    ctx.shadowColor = '#ff4757';
+    ctx.shadowBlur = 15;
+    ctx.fillRect(boss.x, boss.y, boss.w, boss.h);
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(boss.x, boss.y, boss.w, boss.h);
+    ctx.font = 'bold 24px Arial';
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = '#000';
+    ctx.shadowBlur = 5;
+    ctx.fillText('💀 BOSS 💀', boss.x + boss.w/2, boss.y + boss.h/2 + 8);
+    ctx.restore();
+    
+    // Bullets с улучшенной визуализацией
+    for(let b of bullets){
+      ctx.save();
+      const bulletGradient = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+      bulletGradient.addColorStop(0, '#ff4757');
+      bulletGradient.addColorStop(0.7, '#ff3742');
+      bulletGradient.addColorStop(1, '#c44569');
+      ctx.fillStyle = bulletGradient;
+      ctx.shadowColor = '#ff4757';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, 2*Math.PI);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+    }    // Platforms с улучшенной визуализацией
+    for(let p of platforms){
+      ctx.save();
+      if(p.red){
+        // Красная платформа с эффектом опасности
+        const gradient = ctx.createLinearGradient(p.x, p.y-platformH/2, p.x, p.y+platformH/2);
+        gradient.addColorStop(0, '#ff4757');
+        gradient.addColorStop(0.5, '#ff3742');
+        gradient.addColorStop(1, '#c44569');
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = '#ff4757';
+        ctx.shadowBlur = 10;
+      } else {
+        // Обычная платформа с градиентом
+        const gradient = ctx.createLinearGradient(p.x, p.y-platformH/2, p.x, p.y+platformH/2);
+        gradient.addColorStop(0, '#555');
+        gradient.addColorStop(0.5, '#444');
+        gradient.addColorStop(1, '#333');
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = '#000';
+        ctx.shadowBlur = 5;
+      }
+      ctx.fillRect(p.x, p.y-platformH/2, p.w, platformH);
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = p.red ? '#fff' : '#666';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(p.x, p.y-platformH/2, p.w, platformH);
+      ctx.restore();
+    }
+    
+    // Bonuses с улучшенной визуализацией
+    for(let b of bonuses){
+      ctx.save();
+      // Градиент для бонуса
+      const gradient = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+      gradient.addColorStop(0, b.color + 'ff');
+      gradient.addColorStop(0.7, b.color + 'cc');
+      gradient.addColorStop(1, b.color + '66');
+      ctx.fillStyle = gradient;
+      ctx.shadowColor = b.color;
+      ctx.shadowBlur = 15;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, 2*Math.PI);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 16px Arial';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#000';
+      ctx.shadowBlur = 3;
+      ctx.fillText('+' + b.value, b.x, b.y + 5);
+      ctx.restore();
+    }
+    
+    // Персонаж с PNG изображением
+    ctx.save();
+    if(heroImg.complete) {
+      // PNG персонаж с маской
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.r, 0, 2*Math.PI);
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(heroImg, player.x-player.r, player.y-player.r, player.r*2, player.r*2);
+      ctx.restore();
+      // Обводка персонажа
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.r, 0, 2*Math.PI);
+      ctx.stroke();
+    } else {
+      // Fallback - нарисованная тыква
+      ctx.fillStyle = '#ff6600';
+      ctx.shadowColor = '#ff6600';
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.r, 0, 2*Math.PI);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      // Глаза тыквы
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(player.x - 8, player.y - 6, 3, 0, 2*Math.PI);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(player.x + 8, player.y - 6, 3, 0, 2*Math.PI);
+      ctx.fill();
+      
+      // Рот тыквы
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(player.x, player.y + 4, 6, 0, Math.PI);
+      ctx.fill();
+      
+      // Обводка
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.r, 0, 2*Math.PI);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    if(running&&!pause)requestAnimationFrame(loop);}
+    
+    // Функция обновления интерфейса
+    function updateUI(){
+      scoreValue.textContent = score;
+      hpValue.textContent = hp;
+    }  window.addEventListener('keydown', function(e) {
+    if(lose || !running || pause) return;
+    if(e.code === "ArrowLeft" || e.code === "KeyA") keys.left = true;
+    if(e.code === "ArrowRight" || e.code === "KeyD") keys.right = true;
+    if(e.code === "Space" || e.code === "ArrowUp" || e.code === "KeyW") jump();
+  });
+  window.addEventListener('keyup', function(e) {
+    if(lose || !running || pause) return;
+    if(e.code === "ArrowLeft" || e.code === "KeyA") keys.left = false;
+    if(e.code === "ArrowRight" || e.code === "KeyD") keys.right = false;
+  });
+  canvas.addEventListener('mousedown', () => {
+    if(!lose && running && !pause) jump();
+  });
+
+  function jump() {
+    if(player.vy === 0) player.vy = jumpV;
+  }
+  
+  function death(r) {
+    lose = true;
+    running = false;
+    btnPause.style.display = "none";
+    oOver.style.display = "flex";
+    document.getElementById('goTitle').innerText = r || "Game Over!";
+    document.getElementById('goScore').innerText = score;
+  }
+  
+  function winScreen() {
+    win = true;
+    running = false;
+    btnPause.style.display = "none";
+    oWin.style.display = "flex";
+  }
+})();
+</script>
+</body>
+</html>

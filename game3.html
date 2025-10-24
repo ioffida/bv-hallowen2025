@@ -1,0 +1,1302 @@
+<!-- 
+    Halloween Pumpkin Catcher Game for Bitrix
+    =========================================
+    
+    ИНСТРУКЦИЯ ПО УСТАНОВКЕ:
+    1. Скопируйте весь код из этого файла
+    2. В админке Битрикс перейдите в "Контент" -> "Сайты" -> "Структура сайта"
+    3. Выберите нужную страницу и нажмите "Изменить"
+    4. Добавьте блок "Произвольный HTML-код"
+    5. Вставьте весь код в блок
+    6. Сохраните изменения
+    
+    ОСОБЕННОСТИ:
+    - Игра полностью автономна (один HTML файл)
+    - Адаптивный дизайн для мобильных устройств
+    - Защита от конфликтов с CSS Битрикс
+    - Не требует дополнительных библиотек
+    
+    УПРАВЛЕНИЕ:
+    - Стрелки влево/вправо или клавиши A/D
+    - Ловите тыквы (🎃) для получения очков
+    - Избегайте призраков (👻) - они отнимают жизни
+-->
+    <style>
+        /* Сброс стилей для изоляции от Битрикс */
+        .halloween-game-wrapper * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* Защита от влияния внешних стилей */
+        .halloween-game-wrapper {
+            all: initial;
+            font-family: Arial, sans-serif !important;
+        }
+
+        .halloween-game-wrapper {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: #fff;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            margin: 0;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%);
+            border: none;
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: none;
+            /* Изоляция стилей для Битрикс */
+            isolation: isolate;
+            z-index: 1;
+        }
+
+        .game-header {
+            background: linear-gradient(90deg, #ff6b35, #f7931e);
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .game-area {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 60px);
+            background: radial-gradient(circle at center, #2a2a2a 0%, #0a0a0a 100%);
+            overflow: hidden;
+        }
+
+        .player {
+            position: absolute;
+            width: 4vw;
+            height: 4vw;
+            min-width: 50px;
+            min-height: 50px;
+            max-width: 80px;
+            max-height: 80px;
+            bottom: 2vh;
+            left: 0;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border-radius: 50%;
+            border: 3px solid #fff;
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.8);
+            transition: left 0.05s ease-out;
+        }
+
+        .player::before {
+            content: '🎃';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 30px;
+        }
+
+        .pumpkin {
+            position: absolute;
+            width: 3vw;
+            height: 3vw;
+            min-width: 30px;
+            min-height: 30px;
+            max-width: 50px;
+            max-height: 50px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 15px rgba(255, 107, 53, 0.6);
+            animation: fall linear;
+        }
+
+        .pumpkin::before {
+            content: '🎃';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+        }
+
+        .ghost {
+            position: absolute;
+            width: 2.5vw;
+            height: 2.5vw;
+            min-width: 25px;
+            min-height: 25px;
+            max-width: 45px;
+            max-height: 45px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            animation: fall linear, float 2s ease-in-out infinite;
+        }
+
+        .ghost::before {
+            content: '👻';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+        }
+
+        .bonus {
+            position: absolute;
+            width: 2.5vw;
+            height: 2.5vw;
+            min-width: 25px;
+            min-height: 25px;
+            max-width: 40px;
+            max-height: 40px;
+            background: linear-gradient(45deg, #00ff00, #00cc00);
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.6);
+            animation: fall-slow linear, pulse 1s ease-in-out infinite;
+        }
+
+        .bonus::before {
+            content: '⭐';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+        }
+
+        .debuff {
+            position: absolute;
+            width: 2.5vw;
+            height: 2.5vw;
+            min-width: 25px;
+            min-height: 25px;
+            max-width: 40px;
+            max-height: 40px;
+            background: linear-gradient(45deg, #ff0000, #cc0000);
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
+            animation: fall-slow linear, shake 0.5s ease-in-out infinite;
+        }
+
+        .debuff::before {
+            content: '💀';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-2px);
+            }
+            75% {
+                transform: translateX(2px);
+            }
+        }
+
+        @keyframes fall {
+            from {
+                top: -50px;
+            }
+            to {
+                top: 100%;
+            }
+        }
+        
+        @keyframes fall-slow {
+            from {
+                top: -50px;
+            }
+            to {
+                top: 100%;
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .score {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff6b35;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .lives {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff6b35;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .level-info {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid #ff6b35;
+            min-width: 150px;
+        }
+
+        .level-text {
+            color: #ff6b35;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b35, #f7931e);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            color: #fff;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            border: 3px solid #ff6b35;
+            display: none;
+        }
+
+        .victory-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            border: 3px solid #00ff00;
+            display: none;
+            z-index: 1000;
+        }
+
+        .victory-screen h2 {
+            color: #00ff00;
+            font-size: 32px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .victory-screen p {
+            color: #fff;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .game-over h2 {
+            color: #ff6b35;
+            font-size: 32px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .restart-btn {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.6);
+        }
+
+        .start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow-y: auto;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 10;
+        }
+
+        .start-screen h1 {
+            color: #ff6b35;
+            font-size: 36px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .start-screen p {
+            color: #fff;
+            font-size: 18px;
+            margin-bottom: 30px;
+            max-width: 400px;
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            padding: 30px 60px;
+            font-size: 32px;
+            font-weight: bold;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.8);
+            margin-top: 40px;
+            min-width: 250px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 100;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.6);
+        }
+
+        .rules-block {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #ff6b35;
+            margin: 20px 0;
+            max-width: 500px;
+            text-align: left;
+        }
+
+        .rules-block h2 {
+            color: #ff6b35;
+            font-size: 24px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .rules-block h3 {
+            color: #f7931e;
+            font-size: 18px;
+            margin: 15px 0 10px 0;
+            text-align: center;
+        }
+
+        .rules-block ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .rules-block li {
+            margin: 10px 0;
+            font-size: 16px;
+            padding: 8px;
+            background: rgba(255, 107, 53, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #ff6b35;
+        }
+
+        .rules-block p {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #f7931e;
+            margin-top: 10px;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 14px;
+            text-align: center;
+            opacity: 0.7;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10000;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 0, 0, 1);
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(255, 0, 0, 0.6);
+        }
+
+        .pause-btn {
+            position: absolute;
+            top: 20px;
+            right: 70px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 165, 0, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10000;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .pause-btn:hover {
+            background: rgba(255, 165, 0, 1);
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(255, 165, 0, 0.6);
+        }
+
+        .pause-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            border: 3px solid #ffa500;
+            display: none;
+            z-index: 1000;
+        }
+
+        .pause-screen h2 {
+            color: #ffa500;
+            font-size: 32px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .pause-screen p {
+            color: #fff;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .pause-screen .restart-btn {
+            margin: 5px;
+        }
+
+        /* Скримеры */
+        .screamer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10000;
+            display: none;
+        }
+
+        .screamer-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 80vw;
+            max-height: 80vh;
+            z-index: 10001;
+        }
+
+        .player-screamer {
+            transform: scale(10) !important;
+            transition: transform 0.1s ease;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                width: 100vw;
+                height: 100vh;
+            }
+            
+            .game-area {
+                height: calc(100vh - 50px);
+            }
+            
+            .game-header {
+                font-size: 18px;
+                padding: 8px;
+            }
+            
+            .start-btn {
+                padding: 25px 40px;
+                font-size: 28px;
+                min-width: 220px;
+            }
+            
+            .rules-block {
+                padding: 15px;
+                margin: 15px 0;
+                max-width: 90vw;
+            }
+            
+            .rules-block h2 {
+                font-size: 20px;
+            }
+            
+            .rules-block li {
+                font-size: 14px;
+                padding: 6px;
+            }
+            
+            .start-screen h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<div class="halloween-game-wrapper">
+    <div class="game-container">
+        <div class="game-header">
+            🎃 Halloween Pumpkin Catcher 👻
+        </div>
+        
+        <div class="start-screen" id="startScreen">
+            <h1>🎃 Halloween Pumpkin Catcher 👻</h1>
+            <div class="rules-block">
+                <h2>🎮 Правила игры:</h2>
+                <ul>
+                    <li>🎃 Ловите падающие тыквы для получения очков (+10) и развития персонажа</li>
+                    <li>👻 Избегайте призраков - они отнимают жизнь</li>
+                    <li>⭐ Ловите звезды-бонусы для получения дополнительных очков (+20)</li>
+                    <li>💀 Избегайте черепов-дебафов - они отнимают очки (-15)</li>
+                    <li>💀 У вас есть 3 жизни</li>
+                    <li>📈 Система уровней: каждые 5 тыкв персонаж растет на 5% и ускоряется на 5%</li>
+                    <li>⚡ Игра ускоряется со временем</li>
+                    <li>👑 Цель: набрать 666 очков для победы!</li>
+                </ul>
+                <h3>🎯 Управление:</h3>
+                <p>Стрелки ← → или клавиши A D</p>
+            </div>
+            <button class="start-btn" onclick="startGame()">🎮 Начать игру</button>
+        </div>
+        
+        <div class="game-area" id="gameArea">
+            <div class="score" id="score">Счет: 0</div>
+            <div class="lives" id="lives">Жизни: 3</div>
+            <div class="level-info" id="levelInfo">
+                <div class="level-text">Уровень: <span id="playerLevel">1</span></div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">0/5</div>
+            </div>
+            <div class="player" id="player"></div>
+        </div>
+        
+        <div class="game-over" id="gameOver">
+            <h2>Игра окончена!</h2>
+            <p>Ваш счет: <span id="finalScore">0</span></p>
+            <button class="restart-btn" onclick="restartGame()">Играть снова</button>
+        </div>
+        
+        <div class="victory-screen" id="victoryScreen">
+            <h2>🎉 Вы победили! 🎉</h2>
+            <p>Поздравляем! Вы набрали 666 очков!</p>
+            <p>Вопрос: кпкукукпкпук</p>
+            <button class="restart-btn" onclick="restartGame()">Играть снова</button>
+        </div>
+        
+        <div class="pause-screen" id="pauseScreen">
+            <h2>⏸️ Пауза</h2>
+            <p>Игра приостановлена</p>
+            <button class="restart-btn" onclick="togglePause()">Продолжить</button>
+            <button class="restart-btn" onclick="restartGame()">Начать заново</button>
+        </div>
+        
+        <div class="controls">
+            Используйте ← → или A D для движения
+        </div>
+        
+        <button class="close-btn" onclick="closeGame()" title="Закрыть игру">✕</button>
+        <button class="pause-btn" onclick="togglePause()" title="Пауза/Продолжить">⏸️</button>
+    </div>
+    
+    <!-- Скримеры -->
+    <div class="screamer-overlay" id="screamerOverlay">
+        <img class="screamer-image" id="screamerImage" src="https://cm.author.today/content/2020/08/25/5aeeecb854e14ed4b31f5ba77920ba99.jpg" alt="Screamer" style="display: none;">
+    </div>
+
+    <script>
+        class HalloweenGame {
+            constructor() {
+                this.gameArea = document.getElementById('gameArea');
+                this.player = document.getElementById('player');
+                this.scoreElement = document.getElementById('score');
+                this.livesElement = document.getElementById('lives');
+                this.gameOverScreen = document.getElementById('gameOver');
+                this.startScreen = document.getElementById('startScreen');
+                this.finalScoreElement = document.getElementById('finalScore');
+                this.victoryScreen = document.getElementById('victoryScreen');
+                this.screamerOverlay = document.getElementById('screamerOverlay');
+                this.screamerImage = document.getElementById('screamerImage');
+                this.playerLevelElement = document.getElementById('playerLevel');
+                this.progressFill = document.getElementById('progressFill');
+                this.progressText = document.getElementById('progressText');
+                this.pauseScreen = document.getElementById('pauseScreen');
+                
+                this.score = 0;
+                this.lives = 3;
+                this.gameRunning = false;
+                this.playerX = 0;
+                this.gameSpeed = 2000;
+                this.spawnInterval = null;
+                this.gameLoopRunning = false;
+                this.screamerCount = 0;
+                this.maxScreamers = 7;
+                this.screamerTriggered = false;
+                this.lastScreamerTime = 0;
+                this.screamerCooldown = 10000; // 10 секунд в миллисекундах
+                
+                // Система уровней
+                this.playerLevel = 1;
+                this.pumpkinsCaught = 0;
+                this.pumpkinsForNextLevel = 5;
+                this.playerSize = 1.0;
+                this.speedMultiplier = 1.0;
+                this.activePumpkins = 0;
+                this.isPaused = false;
+                this.lastPumpkinTime = 0;
+                
+                this.setupEventListeners();
+            }
+            
+            setupEventListeners() {
+                this.keys = {};
+                this.moveSpeed = 0;
+                this.maxSpeed = 10; // Увеличено с 8 до 10 (25% увеличение)
+                this.acceleration = 0.625; // Увеличено с 0.5 до 0.625 (25% увеличение)
+                this.friction = 0.8;
+                
+                document.addEventListener('keydown', (e) => {
+                    if (!this.gameRunning) return;
+                    
+                    e.preventDefault();
+                    
+                    if (e.key === 'Escape') {
+                        this.togglePause();
+                        return;
+                    }
+                    
+                    if (this.isPaused) return; // Не обрабатываем движение во время паузы
+                    
+                    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                        this.keys.left = true;
+                    } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                        this.keys.right = true;
+                    }
+                });
+                
+                document.addEventListener('keyup', (e) => {
+                    if (!this.gameRunning) return;
+                    
+                    e.preventDefault();
+                    
+                    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                        this.keys.left = false;
+                    } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                        this.keys.right = false;
+                    }
+                });
+            }
+            
+            gameLoop() {
+                if (!this.gameRunning || this.gameLoopRunning) return;
+                
+                this.gameLoopRunning = true;
+                const loop = () => {
+                    if (!this.gameRunning) {
+                        this.gameLoopRunning = false;
+                        return;
+                    }
+                    
+                    if (!this.isPaused) {
+                        this.updateMovement();
+                    }
+                    requestAnimationFrame(loop);
+                };
+                loop();
+            }
+            
+            updateMovement() {
+                const gameAreaWidth = this.gameArea.offsetWidth;
+                const playerWidth = this.player.offsetWidth;
+                const maxX = gameAreaWidth - playerWidth;
+                
+                // Обработка нажатий
+                if (this.keys.left) {
+                    this.moveSpeed = Math.max(-this.maxSpeed, this.moveSpeed - this.acceleration);
+                } else if (this.keys.right) {
+                    this.moveSpeed = Math.min(this.maxSpeed, this.moveSpeed + this.acceleration);
+                } else {
+                    // Применяем трение когда клавиши не нажаты
+                    this.moveSpeed *= this.friction;
+                    if (Math.abs(this.moveSpeed) < 0.1) {
+                        this.moveSpeed = 0;
+                    }
+                }
+                
+                // Обновляем позицию только если есть движение
+                if (Math.abs(this.moveSpeed) > 0.01) {
+                    this.playerX += this.moveSpeed;
+                    this.playerX = Math.max(0, Math.min(maxX, this.playerX));
+                    this.updatePlayerPosition();
+                }
+                
+                // Случайные скримеры (1% шанс каждый кадр, но не чаще чем каждые 10 секунд)
+                const currentTime = Date.now();
+                if (Math.random() < 0.01 && 
+                    currentTime - this.lastScreamerTime >= this.screamerCooldown) {
+                    this.triggerScreamer();
+                }
+                
+                // Дополнительная проверка тыкв - если их нет больше 5 секунд, принудительно создаем
+                if (this.activePumpkins === 0 && this.gameRunning && !this.isPaused) {
+                    if (!this.lastPumpkinTime) this.lastPumpkinTime = Date.now();
+                    if (Date.now() - this.lastPumpkinTime > 5000) {
+                        this.forceSpawnPumpkin();
+                        this.lastPumpkinTime = Date.now();
+                    }
+                } else if (this.activePumpkins > 0) {
+                    this.lastPumpkinTime = Date.now();
+                }
+            }
+            
+            startGame() {
+                this.startScreen.style.display = 'none';
+                this.gameOverScreen.style.display = 'none';
+                this.victoryScreen.style.display = 'none';
+                this.pauseScreen.style.display = 'none';
+                this.gameRunning = true;
+                this.score = 0;
+                this.lives = 3;
+                this.screamerCount = 0;
+                this.lastScreamerTime = 0;
+                this.playerLevel = 1;
+                this.pumpkinsCaught = 0;
+                this.playerSize = 1.0;
+                this.speedMultiplier = 1.0;
+                this.activePumpkins = 0;
+                this.isPaused = false;
+                this.lastPumpkinTime = 0;
+                
+                // Инициализация позиции игрока по центру
+                const gameAreaWidth = this.gameArea.offsetWidth;
+                const playerWidth = this.player.offsetWidth;
+                this.playerX = (gameAreaWidth - playerWidth) / 2;
+                this.moveSpeed = 0;
+                
+                this.updateScore();
+                this.updateLives();
+                this.updateLevelDisplay();
+                this.updatePlayerSize();
+                this.updatePlayerSpeed();
+                this.updatePlayerPosition();
+                this.startSpawning();
+                
+                // Запуск игрового цикла
+                this.gameLoop();
+            }
+            
+            startSpawning() {
+                this.spawnInterval = setInterval(() => {
+                    this.spawnObject();
+                }, this.gameSpeed);
+                
+                // Принудительный спавн тыкв, если их нет
+                this.pumpkinCheckInterval = setInterval(() => {
+                    if (this.activePumpkins === 0 && this.gameRunning && !this.isPaused) {
+                        this.forceSpawnPumpkin();
+                    }
+                }, 2000); // Проверяем каждые 2 секунды
+                
+                // Увеличиваем скорость со временем
+                setTimeout(() => {
+                    if (this.gameSpeed > 800) {
+                        this.gameSpeed -= 100;
+                        clearInterval(this.spawnInterval);
+                        this.startSpawning();
+                    }
+                }, 10000);
+            }
+            
+            forceSpawnPumpkin() {
+                if (!this.gameRunning || this.activePumpkins > 0 || this.isPaused) return;
+                
+                const object = document.createElement('div');
+                object.className = 'pumpkin';
+                
+                const gameAreaWidth = this.gameArea.offsetWidth;
+                const objectWidth = 40;
+                const randomX = Math.random() * (gameAreaWidth - objectWidth);
+                
+                object.style.left = randomX + 'px';
+                object.style.top = '-50px'; // Начинаем сверху экрана
+                object.style.animationDuration = (Math.random() * 2.88 + 2.88) + 's';
+                
+                this.gameArea.appendChild(object);
+                this.activePumpkins++;
+                
+                this.setupObjectCollision(object, 'pumpkin');
+            }
+            
+            spawnObject() {
+                if (!this.gameRunning || this.isPaused) return;
+                
+                const object = document.createElement('div');
+                const random = Math.random();
+                let objectType = 'pumpkin';
+                
+                // Определяем тип объекта
+                if (random < 0.25) { // 25% шанс призрака
+                    objectType = 'ghost';
+                } else if (random < 0.35) { // 10% шанс бонуса
+                    objectType = 'bonus';
+                } else if (random < 0.45) { // 10% шанс дебафа
+                    objectType = 'debuff';
+                } else { // 55% шанс тыквы
+                    objectType = 'pumpkin';
+                }
+                
+                // Проверяем, можно ли спавнить тыкву (только если нет активных тыкв)
+                if (objectType === 'pumpkin' && this.activePumpkins > 0) {
+                    return; // Не спавним тыкву, если уже есть активная
+                }
+                
+                object.className = objectType;
+                
+                const gameAreaWidth = this.gameArea.offsetWidth;
+                const objectWidth = 40;
+                const randomX = Math.random() * (gameAreaWidth - objectWidth);
+                
+                object.style.left = randomX + 'px';
+                object.style.top = '-50px'; // Начинаем сверху экрана
+                
+                // Замедляем падение на 40% (увеличиваем время анимации)
+                if (objectType === 'bonus' || objectType === 'debuff') {
+                    object.style.animationDuration = (Math.random() * 3 + 4) + 's'; // 4-7 секунд
+                } else if (objectType === 'pumpkin') {
+                    object.style.animationDuration = (Math.random() * 2.88 + 2.88) + 's'; // 2.88-5.76 секунд (замедление на 20% от текущего)
+                } else {
+                    object.style.animationDuration = (Math.random() * 2.4 + 2.4) + 's'; // 2.4-4.8 секунд (замедление на 40%)
+                }
+                
+                this.gameArea.appendChild(object);
+                
+                // Увеличиваем счетчик активных тыкв
+                if (objectType === 'pumpkin') {
+                    this.activePumpkins++;
+                }
+                
+                this.setupObjectCollision(object, objectType);
+            }
+            
+            setupObjectCollision(object, objectType) {
+                // Проверка столкновения
+                const checkCollision = () => {
+                    if (!this.gameRunning) return;
+                    
+                    const playerRect = this.player.getBoundingClientRect();
+                    const objectRect = object.getBoundingClientRect();
+                    
+                    if (this.isColliding(playerRect, objectRect)) {
+                        if (objectType === 'ghost') {
+                            this.loseLife();
+                        } else if (objectType === 'pumpkin') {
+                            this.addScore(10, true); // true означает, что это тыква
+                            this.activePumpkins--; // Уменьшаем счетчик активных тыкв
+                        } else if (objectType === 'bonus') {
+                            console.log('Бонус пойман - добавляем 20 очков');
+                            this.addScore(20);
+                        } else if (objectType === 'debuff') {
+                            console.log('Дебаф пойман - отнимаем 15 очков');
+                            this.addScore(-15);
+                        }
+                        object.remove();
+                        return;
+                    }
+                    
+                    if (objectRect.top > this.gameArea.offsetHeight) {
+                        if (objectType === 'pumpkin') {
+                            this.loseLife();
+                            this.activePumpkins--; // Уменьшаем счетчик активных тыкв
+                        } else if (objectType === 'bonus') {
+                            // Бонус упал - НЕ ДАЕМ ОЧКИ, просто удаляем
+                            console.log('Бонус упал - очки НЕ добавлены');
+                        } else if (objectType === 'debuff') {
+                            // Дебаф упал - НЕ ДАЕМ ОЧКИ, просто удаляем
+                            console.log('Дебаф упал - очки НЕ добавлены');
+                        }
+                        // Призраки тоже просто исчезают
+                        object.remove();
+                        return;
+                    }
+                    
+                    if (this.gameRunning) {
+                        requestAnimationFrame(checkCollision);
+                    }
+                };
+                
+                setTimeout(checkCollision, 50);
+                
+                // Удаление объекта через 5 секунд
+                setTimeout(() => {
+                    if (object.parentNode) {
+                        object.remove();
+                    }
+                }, 5000);
+            }
+            
+            isColliding(rect1, rect2) {
+                return rect1.left < rect2.right &&
+                       rect1.right > rect2.left &&
+                       rect1.top < rect2.bottom &&
+                       rect1.bottom > rect2.top;
+            }
+            
+            addScore(points = 10, isPumpkin = false) {
+                this.score += points;
+                this.updateScore();
+                
+                // Обработка тыкв для системы уровней
+                if (isPumpkin) {
+                    this.pumpkinsCaught++;
+                    this.checkLevelUp();
+                }
+                
+                // Проверка победы
+                if (this.score >= 666) {
+                    this.victory();
+                }
+            }
+            
+            loseLife() {
+                this.lives--;
+                this.updateLives();
+                
+                if (this.lives <= 0) {
+                    this.gameOver();
+                }
+            }
+            
+            updateScore() {
+                this.scoreElement.textContent = `Счет: ${this.score}`;
+            }
+            
+            updateLives() {
+                this.livesElement.textContent = `Жизни: ${this.lives}`;
+            }
+            
+            checkLevelUp() {
+                if (this.pumpkinsCaught >= this.pumpkinsForNextLevel) {
+                    this.levelUp();
+                }
+                this.updateLevelDisplay();
+            }
+            
+            levelUp() {
+                this.playerLevel++;
+                this.pumpkinsCaught = 0;
+                this.playerSize += 0.05; // Увеличение на 5%
+                this.speedMultiplier += 0.05; // Увеличение скорости на 5%
+                this.updatePlayerSize();
+                this.updatePlayerSpeed();
+            }
+            
+            updateLevelDisplay() {
+                this.playerLevelElement.textContent = this.playerLevel;
+                const progress = (this.pumpkinsCaught / this.pumpkinsForNextLevel) * 100;
+                this.progressFill.style.width = progress + '%';
+                this.progressText.textContent = `${this.pumpkinsCaught}/${this.pumpkinsForNextLevel}`;
+            }
+            
+            updatePlayerSize() {
+                this.player.style.transform = `scale(${this.playerSize})`;
+            }
+            
+            updatePlayerSpeed() {
+                this.maxSpeed = 10 * this.speedMultiplier;
+                this.acceleration = 0.625 * this.speedMultiplier;
+            }
+            
+            updatePlayerPosition() {
+                this.player.style.left = this.playerX + 'px';
+                this.player.style.transform = `scale(${this.playerSize}) translateX(0)`;
+            }
+            
+            gameOver() {
+                this.gameRunning = false;
+                this.gameLoopRunning = false;
+                clearInterval(this.spawnInterval);
+                clearInterval(this.pumpkinCheckInterval);
+                this.finalScoreElement.textContent = this.score;
+                this.gameOverScreen.style.display = 'block';
+                
+                // Очистка всех объектов
+                const objects = this.gameArea.querySelectorAll('.pumpkin, .ghost, .bonus, .debuff');
+                objects.forEach(obj => obj.remove());
+                this.activePumpkins = 0; // Сбрасываем счетчик активных тыкв
+                
+                // Сброс движения
+                this.moveSpeed = 0;
+                this.keys = {};
+            }
+            
+            restart() {
+                this.startGame();
+            }
+            
+            togglePause() {
+                if (!this.gameRunning) return;
+                
+                this.isPaused = !this.isPaused;
+                
+                if (this.isPaused) {
+                    this.pauseScreen.style.display = 'block';
+                    // Останавливаем спавн объектов
+                    clearInterval(this.spawnInterval);
+                    clearInterval(this.pumpkinCheckInterval);
+                    // Останавливаем анимации всех объектов
+                    this.pauseAllObjects();
+                } else {
+                    this.pauseScreen.style.display = 'none';
+                    // Возобновляем анимации всех объектов
+                    this.resumeAllObjects();
+                    // Возобновляем спавн объектов
+                    this.startSpawning();
+                }
+            }
+            
+            pauseAllObjects() {
+                const objects = this.gameArea.querySelectorAll('.pumpkin, .ghost, .bonus, .debuff');
+                objects.forEach(obj => {
+                    obj.style.animationPlayState = 'paused';
+                });
+            }
+            
+            resumeAllObjects() {
+                const objects = this.gameArea.querySelectorAll('.pumpkin, .ghost, .bonus, .debuff');
+                objects.forEach(obj => {
+                    obj.style.animationPlayState = 'running';
+                });
+            }
+            
+            victory() {
+                this.gameRunning = false;
+                this.gameLoopRunning = false;
+                clearInterval(this.spawnInterval);
+                clearInterval(this.pumpkinCheckInterval);
+                this.victoryScreen.style.display = 'block';
+                
+                // Очистка всех объектов
+                const objects = this.gameArea.querySelectorAll('.pumpkin, .ghost, .bonus, .debuff');
+                objects.forEach(obj => obj.remove());
+                this.activePumpkins = 0; // Сбрасываем счетчик активных тыкв
+                
+                // Сброс движения
+                this.moveSpeed = 0;
+                this.keys = {};
+            }
+            
+            triggerScreamer() {
+                if (this.screamerCount >= this.maxScreamers || this.screamerTriggered) return;
+                
+                this.screamerCount++;
+                this.screamerTriggered = true;
+                this.lastScreamerTime = Date.now();
+                
+                // Случайный тип скримера
+                const screamerType = Math.floor(Math.random() * 7);
+                
+                switch(screamerType) {
+                    case 0: // Черный экран
+                        this.screamerOverlay.style.background = 'black';
+                        this.screamerOverlay.style.display = 'block';
+                        setTimeout(() => {
+                            this.screamerOverlay.style.display = 'none';
+                            this.screamerTriggered = false;
+                        }, 1000);
+                        break;
+                        
+                    case 1: // Белый экран
+                        this.screamerOverlay.style.background = 'white';
+                        this.screamerOverlay.style.display = 'block';
+                        setTimeout(() => {
+                            this.screamerOverlay.style.display = 'none';
+                            this.screamerTriggered = false;
+                        }, 1000);
+                        break;
+                        
+                    case 2: // Увеличение персонажа
+                        this.player.classList.add('player-screamer');
+                        setTimeout(() => {
+                            this.player.classList.remove('player-screamer');
+                            this.screamerTriggered = false;
+                        }, 1000);
+                        break;
+                        
+                    case 3: // Страшная картинка
+                        this.screamerOverlay.style.background = 'black';
+                        this.screamerOverlay.style.display = 'block';
+                        this.screamerImage.style.display = 'block';
+                        setTimeout(() => {
+                            this.screamerOverlay.style.display = 'none';
+                            this.screamerImage.style.display = 'none';
+                            this.screamerTriggered = false;
+                        }, 2000);
+                        break;
+                        
+                    case 4: // Красный экран
+                        this.screamerOverlay.style.background = 'red';
+                        this.screamerOverlay.style.display = 'block';
+                        setTimeout(() => {
+                            this.screamerOverlay.style.display = 'none';
+                            this.screamerTriggered = false;
+                        }, 1000);
+                        break;
+                        
+                    case 5: // Зеленый экран
+                        this.screamerOverlay.style.background = 'green';
+                        this.screamerOverlay.style.display = 'block';
+                        setTimeout(() => {
+                            this.screamerOverlay.style.display = 'none';
+                            this.screamerTriggered = false;
+                        }, 1000);
+                        break;
+                        
+                    case 6: // Синий экран
+                        this.screamerOverlay.style.background = 'blue';
+                        this.screamerOverlay.style.display = 'block';
+                        setTimeout(() => {
+                            this.screamerOverlay.style.display = 'none';
+                            this.screamerTriggered = false;
+                        }, 1000);
+                        break;
+                }
+            }
+        }
+        
+        // Инициализация игры
+        const game = new HalloweenGame();
+        
+        function startGame() {
+            game.startGame();
+        }
+        
+        function restartGame() {
+            game.restart();
+        }
+        
+        function closeGame() {
+            if (confirm('Вы уверены, что хотите закрыть игру?')) {
+                document.querySelector('.halloween-game-wrapper').style.display = 'none';
+            }
+        }
+        
+        function togglePause() {
+            game.togglePause();
+        }
+        
+        // Предотвращение скролла страницы при игре
+        document.addEventListener('keydown', (e) => {
+            if (['ArrowLeft', 'ArrowRight', 'a', 'A', 'd', 'D'].includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</div>

@@ -1,0 +1,487 @@
+<div id="gameContainer" style="
+  position:fixed; top:0; left:0;
+  width:100vw; height:100vh;
+  overflow:hidden;">
+  <canvas id="gameCanvas" style="
+    display:block;
+    width:100%; height:100%;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.8);"></canvas>
+
+  <!-- Скример -->
+  <div id="scrimerOverlay" style="
+    display:none;
+    position:absolute; top:0; left:0;
+    width:100%; height:100%;
+    z-index:1;
+    pointer-events:none;"></div>
+
+  <!-- Pause button -->
+  <button id="pauseBtn" style="
+    display:none;
+    position:absolute; top:15px; right:15px;
+    z-index:2;
+    padding:12px 24px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    background: linear-gradient(145deg, #ff6b35, #ff8e53);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(255,107,53,0.3);
+    transition: all 0.2s ease;">⏸️ Pause</button>
+
+  <!-- START OVERLAY -->
+  <div id="overlayStart" style="
+    position:absolute; top:0; left:0;
+    width:100%; height:100%;
+    background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(26,26,46,0.95));
+    color:#fff;
+    z-index:3;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    text-align:center;
+    padding:20px;
+    box-sizing:border-box;
+    backdrop-filter: blur(10px);">
+    <h1 style="color:#ff6b35;font-size:48px;text-shadow:0 4px 12px rgba(255,107,53,0.4);margin-bottom:20px;">🎃 HALLOWEEN GAME 🎃</h1>
+    <div style="background:rgba(255,107,53,0.1);padding:20px;border-radius:12px;border:2px solid rgba(255,107,53,0.3);margin-bottom:20px;">
+      <p style="font-size:20px;margin:10px 0;"><b>🎯 ЦЕЛЬ:</b> <span style="color:#4ade80;font-weight:bold;">666 очков</span></p>
+      <p style="font-size:18px;margin:10px 0;"><b>❤️ ЖИЗНИ:</b> 3 HP</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:800px;margin-bottom:20px;">
+      <div style="background:rgba(74,222,128,0.1);padding:15px;border-radius:8px;border:1px solid rgba(74,222,128,0.3);">
+        <h3 style="color:#4ade80;margin-top:0;">🟢 БОНУСЫ</h3>
+        <ul style="text-align:left;margin:0;padding-left:20px;font-size:14px;">
+          <li><b>F</b> Fire Rate Up – ускорение стрельбы</li>
+          <li><b>D</b> Double Damage – двойной урон</li>
+          <li><b>S</b> Speed Up – вы ↑, враги ↓</li>
+          <li><b>H</b> Аптечка – +1 HP</li>
+        </ul>
+      </div>
+      <div style="background:rgba(255,71,87,0.1);padding:15px;border-radius:8px;border:1px solid rgba(255,71,87,0.3);">
+        <h3 style="color:#ff4757;margin-top:0;">🟣 ДЕБАФЫ</h3>
+        <ul style="text-align:left;margin:0;padding-left:20px;font-size:14px;">
+          <li>Slow Fire – замедление стрельбы</li>
+          <li>Half Damage – урон ↓</li>
+          <li>Slow Player – вы ↓</li>
+          <li>Speed Enemies – враги ↑</li>
+        </ul>
+      </div>
+    </div>
+    <button id="btnStart" style="
+      padding:18px 40px;
+      font-size:24px;
+      font-weight:bold;
+      cursor:pointer;
+      margin-top:20px;
+      background: linear-gradient(145deg, #ff6b35, #ff8e53);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(255,107,53,0.3);
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;">🚀 START</button>
+  </div>
+
+  <!-- PAUSE OVERLAY -->
+  <div id="overlayPause" style="
+    position:absolute; top:0; left:0;
+    width:100%; height:100%;
+    background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(26,26,46,0.95));
+    color:#fff;
+    z-index:3;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:20px;
+    box-sizing:border-box;
+    backdrop-filter: blur(10px);">
+    <h1 style="color:#ff6b35;font-size:48px;text-shadow:0 4px 12px rgba(255,107,53,0.4);">⏸️ ПАУЗА</h1>
+    <p style="font-size:20px;color:#ffa600;margin:20px 0;">Игра приостановлена</p>
+    <button id="btnResume" style="
+      padding:18px 40px;
+      font-size:24px;
+      font-weight:bold;
+      cursor:pointer;
+      margin-top:20px;
+      background: linear-gradient(145deg, #4ade80, #22c55e);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(74,222,128,0.3);
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;">▶️ ПРОДОЛЖИТЬ</button>
+  </div>
+
+  <!-- END OVERLAY -->
+  <div id="overlayEnd" style="
+    position:absolute; top:0; left:0;
+    width:100%; height:100%;
+    background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(26,26,46,0.95));
+    color:#fff;
+    z-index:3;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:20px;
+    box-sizing:border-box;
+    backdrop-filter: blur(10px);">
+    <h1 id="endText" style="color:#ff4757;font-size:48px;text-shadow:0 4px 12px rgba(255,71,87,0.4);margin-bottom:20px;">💀 GAME OVER 💀</h1>
+    <div style="background:rgba(255,71,87,0.1);padding:20px;border-radius:12px;border:2px solid rgba(255,71,87,0.3);margin-bottom:20px;">
+      <p id="finalScore" style="font-size:28px;margin:10px 0;color:#4ade80;font-weight:bold;">Ваш счёт: 0</p>
+    </div>
+    <button id="btnRestart" style="
+      padding:18px 40px;
+      font-size:24px;
+      font-weight:bold;
+      cursor:pointer;
+      margin-top:20px;
+      background: linear-gradient(145deg, #ff6b35, #ff8e53);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(255,107,53,0.3);
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;">🔄 ЗАНОВО</button>
+  </div>
+</div>
+
+<script>
+;(function(){// DOM
+  var canvas     = document.getElementById('gameCanvas'),
+      ctx        = canvas.getContext('2d'),
+      scrimerO   = document.getElementById('scrimerOverlay'),
+      oStart     = document.getElementById('overlayStart'),
+      oPause     = document.getElementById('overlayPause'),
+      oEnd       = document.getElementById('overlayEnd'),
+      btnStart   = document.getElementById('btnStart'),
+      btnPause   = document.getElementById('pauseBtn'),
+      btnResume  = document.getElementById('btnResume'),
+      btnRestart = document.getElementById('btnRestart'),
+      endText    = document.getElementById('endText'),
+      finalScore = document.getElementById('finalScore'),
+      w,h;
+
+  // Resize canvas
+  function resize(){w = window.innerWidth;  h = window.innerHeight;
+    canvas.width  = w;      canvas.height = h;}window.addEventListener('resize', resize);
+  resize();
+
+  // State
+  var state='start', // 'start','playing','paused','ended'
+      pointer={active:false,x:0,y:0},
+      player, bullets, enemies, bosses, items, effects,
+      score, kills,
+      startTime, lastTime, lastShot, lastEnemy, lastBoss, lastItem, nextItemInterval,
+      screamEvents, screamIdx, scrimer;
+
+  // Constants
+  var basePlayerSpeed  =200,
+      baseEnemySpeed   =80,
+      baseBossSpeed    =50,
+      baseFireInterval =500,
+      baseBulletSpeed  =400,
+      baseDamage       =1,
+      enemySpawnInt    =800,
+      bossSpawnInt     =30000;
+
+  // Helpers
+  function rnd(a,b){return a + Math.random()*(b-a);}function dist(x1,y1,x2,y2){return Math.hypot(x2-x1,y2-y1);}// Button handlers
+  btnStart.onclick   = startGame;
+  btnPause.onclick   = togglePause;
+  btnResume.onclick  = togglePause;
+  btnRestart.onclick = function(){state='start';
+    oEnd.style.display = 'none';
+    oStart.style.display = 'flex';
+    btnPause.style.display = 'none';};
+
+  // Pointer pos
+  function getPointerPos(e){var r=canvas.getBoundingClientRect(),
+        cx=e.touches?e.touches[0].clientX:e.clientX,
+        cy=e.touches?e.touches[0].clientY:e.clientY;
+    return{x:(cx-r.left)*(canvas.width/r.width),
+      y:(cy-r.top )*(canvas.height/r.height)};}// Drag player
+  canvas.addEventListener('mousedown',function(e){if(state!=='playing')return;
+    var p=getPointerPos(e);
+    if(dist(p.x,p.y,player.x,player.y)<=player.r){pointer.active=true; pointer.x=p.x; pointer.y=p.y;}});
+  canvas.addEventListener('mousemove',function(e){if(pointer.active){var p=getPointerPos(e);
+      pointer.x=p.x; pointer.y=p.y;}});
+  window.addEventListener('mouseup',function(){pointer.active=false;});
+  canvas.addEventListener('touchstart',function(e){if(state!=='playing')return;
+    e.preventDefault();
+    var p=getPointerPos(e);
+    if(dist(p.x,p.y,player.x,player.y)<=player.r){pointer.active=true; pointer.x=p.x; pointer.y=p.y;}},{passive:false});
+  canvas.addEventListener('touchmove',function(e){if(pointer.active){e.preventDefault();
+      var p=getPointerPos(e);
+      pointer.x=p.x; pointer.y=p.y;}},{passive:false});
+  window.addEventListener('touchend',function(){pointer.active=false;});
+
+  // Start game
+  function startGame(){state='playing';
+    oStart.style.display = 'none';
+    oPause.style.display = 'none';
+    oEnd.style.display   = 'none';
+    btnPause.style.display='block';
+
+    player   ={x:w/2,y:h/2,r:20,hp:3,maxHp:3};
+    bullets  =[]; enemies=[]; bosses=[]; items=[]; effects=[];
+    score=0; kills=0;
+    startTime=lastTime=lastShot=lastEnemy=lastBoss=lastItem=Date.now();
+    nextItemInterval =15000 + rnd(0,5000);
+
+    screamEvents=[];
+    for(var i=0;i<4;i++){screamEvents.push({time:rnd(5000,300000),type:Math.random()<0.5?'red':'black'});}screamEvents.sort((a,b)=>a.time-b.time);
+    screamIdx=0;
+    scrimer={active:false,start:0,type:'',duration:1000};
+
+    requestAnimationFrame(loop);}// Pause/Resume
+  function togglePause(){if(state==='playing'){state='paused';
+      oPause.style.display='flex';
+      btnPause.textContent='Resume';}else if(state==='paused'){state='playing';
+      oPause.style.display='none';
+      btnPause.textContent='Pause';
+      lastTime=Date.now();
+      requestAnimationFrame(loop);}}// Main loop
+  function loop(){if(state!=='playing')return;
+    var now=Date.now(), dt=(now-lastTime)/1000;
+    lastTime=now;
+
+    // Screamer
+    if(screamIdx<screamEvents.length && now-startTime>=screamEvents[screamIdx].time){scrimer.active=true; scrimer.start=now; scrimer.type=screamEvents[screamIdx].type;
+      screamIdx++;}if(scrimer.active && now-scrimer.start>=scrimer.duration) scrimer.active=false;
+
+    // End?
+    if(player.hp<=0){endGame(false); return;}if(score>=666){endGame(true);  return;}// Spawn
+    if(now-lastEnemy>=enemySpawnInt){spawnEnemy(); lastEnemy=now;}if(now-lastBoss >=bossSpawnInt ){spawnBoss();  lastBoss=now;}if(now-lastItem >=nextItemInterval){spawnItem(now);
+      lastItem=now;
+      nextItemInterval=15000+rnd(0,5000);}// Effects
+    var mods={fireRate:1,dmg:1,ps:1,es:1};
+    for(var i=effects.length-1;i>=0;i--){var ef=effects[i];
+      if(now>ef.expire) effects.splice(i,1);
+      else switch(ef.type){case 'fireRateUp':   mods.fireRate*=0.5; break;
+        case 'slowFire':     mods.fireRate*=2;   break;
+        case 'doubleDamage': mods.dmg     *=2;   break;
+        case 'halfDamage':   mods.dmg     *=0.5; break;
+        case 'speedUp':      mods.ps     *=1.5; mods.es*=0.7;break;
+        case 'slowPlayer':   mods.ps     *=0.5;   break;
+        case 'speedEnemies': mods.es     *=1.5;   break;}}var fi=baseFireInterval*mods.fireRate,
+        bd=baseDamage*mods.dmg,
+        pv=basePlayerSpeed*mods.ps,
+        ev=baseEnemySpeed*mods.es,
+        bv=baseBossSpeed*mods.es;
+
+    // Move player
+    if(pointer.active){var dx=pointer.x-player.x, dy=pointer.y-player.y,
+          d=Math.hypot(dx,dy)||1, mv=pv*dt;
+      if(d>mv){player.x+=dx/d*mv; player.y+=dy/d*mv;}else{player.x=pointer.x; player.y=pointer.y;}}player.x=Math.max(player.r,Math.min(w-player.r,player.x));
+    player.y=Math.max(player.r,Math.min(h-player.r,player.y));
+
+    // Auto‐shoot
+    if(now-lastShot>=fi){var T=enemies.concat(bosses);
+      if(T.length){var best=T[0],md=dist(best.x,best.y,player.x,player.y);
+        for(var i=1;i<T.length;i++){var dd=dist(T[i].x,T[i].y,player.x,player.y);
+          if(dd<md){md=dd;best=T[i];}}var dx=best.x-player.x, dy=best.y-player.y, L=Math.hypot(dx,dy);
+        if(L>0){bullets.push({x:player.x,y:player.y,
+            vx:dx/L*baseBulletSpeed,
+            vy:dy/L*baseBulletSpeed,
+            damage:bd});
+          lastShot=now;}}}// Update bullets
+    for(var i=bullets.length-1;i>=0;i--){var b=bullets[i];
+      b.x+=b.vx*dt; b.y+=b.vy*dt;
+      if(b.x<0||b.x>w||b.y<0||b.y>h){bullets.splice(i,1); continue;}var hit=false;
+      for(var j=enemies.length-1;j>=0;j--){var e=enemies[j];
+        if(dist(b.x,b.y,e.x,e.y)<e.r){e.health-=b.damage;
+          bullets.splice(i,1);
+          hit=true;
+          if(e.health<=0){score+=e.score; enemies.splice(j,1); kills++;
+            if(kills%100===0) spawnMedkit(now);}break;}}if(hit) continue;
+      for(var j=bosses.length-1;j>=0;j--){var e=bosses[j];
+        if(dist(b.x,b.y,e.x,e.y)<e.r){e.health-=b.damage;
+          bullets.splice(i,1);
+          if(e.health<=0){score+=e.score; bosses.splice(j,1);}break;}}}// Update enemies
+    enemies.forEach((e,i)=>{var dx=player.x-e.x, dy=player.y-e.y, D=Math.hypot(dx,dy)||1;
+      e.x+=dx/D*ev*dt; e.y+=dy/D*ev*dt;
+      if(D<player.r+e.r){enemies.splice(i,1); player.hp--;}});
+    bosses.forEach((e,i)=>{var dx=player.x-e.x, dy=player.y-e.y, D=Math.hypot(dx,dy)||1;
+      e.x+=dx/D*bv*dt; e.y+=dy/D*bv*dt;
+      if(D<player.r+e.r){bosses.splice(i,1); player.hp--;}});
+
+    // Update items
+    for(var i=items.length-1;i>=0;i--){var it=items[i];
+      if(now-it.spawn>20000){items.splice(i,1); continue;}if(dist(it.x,it.y,player.x,player.y)<it.r+player.r){if(it.type==='heal'){player.hp=Math.min(player.maxHp,player.hp+1);}else{effects.push({type:it.type,expire:now+20000});}items.splice(i,1);}}draw();
+    requestAnimationFrame(loop);}// Draw everything
+  function draw(){ctx.clearRect(0,0,w,h);
+
+    // Items с улучшенной визуализацией
+    items.forEach(function(it){
+      ctx.save();
+      var col='#8b5cf6', L='?', shadowCol='#8b5cf6';
+      if(it.type==='heal'){col='#ff4757';L='H';shadowCol='#ff4757';}
+      else if(it.type==='fireRateUp'){col='#4ade80';L='F';shadowCol='#4ade80';}
+      else if(it.type==='doubleDamage'){col='#4ade80';L='D';shadowCol='#4ade80';}
+      else if(it.type==='speedUp'){col='#4ade80';L='S';shadowCol='#4ade80';}
+      else if(it.type==='slowFire'||it.type==='halfDamage'||it.type==='slowPlayer'||it.type==='speedEnemies'){col='#8b5cf6';L='?';shadowCol='#8b5cf6';}
+      
+      const itemGradient = ctx.createRadialGradient(it.x, it.y, 0, it.x, it.y, it.r);
+      itemGradient.addColorStop(0, col);
+      itemGradient.addColorStop(0.7, col + 'cc');
+      itemGradient.addColorStop(1, col + '66');
+      ctx.fillStyle = itemGradient;
+      ctx.shadowColor = shadowCol;
+      ctx.shadowBlur = 15;
+      ctx.beginPath();
+      ctx.arc(it.x, it.y, it.r, 0, 2*Math.PI);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#000';
+      ctx.shadowBlur = 3;
+      ctx.fillText(L, it.x, it.y + 4);
+      ctx.restore();
+    });
+
+    // Enemies с улучшенной визуализацией
+    enemies.forEach(function(e){
+      ctx.save();
+      const enemyGradient = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.r);
+      enemyGradient.addColorStop(0, '#8b5cf6');
+      enemyGradient.addColorStop(0.7, '#a855f7');
+      enemyGradient.addColorStop(1, '#7c3aed');
+      ctx.fillStyle = enemyGradient;
+      ctx.shadowColor = '#8b5cf6';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.r, 0, 2*Math.PI);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+      // Полоска здоровья
+      var bw = e.r*2, bh = 6;
+      ctx.fillStyle = 'rgba(255,0,0,0.3)';
+      ctx.fillRect(e.x-bw/2, e.y-e.r-12, bw, bh);
+      ctx.fillStyle = '#4ade80';
+      ctx.fillRect(e.x-bw/2, e.y-e.r-12, bw*(e.health/e.maxHealth), bh);
+      ctx.restore();
+    });
+    // Bosses с улучшенной визуализацией
+    bosses.forEach(function(e){
+      ctx.save();
+      const bossGradient = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.r);
+      bossGradient.addColorStop(0, '#ff4757');
+      bossGradient.addColorStop(0.5, '#c44569');
+      bossGradient.addColorStop(1, '#8b2635');
+      ctx.fillStyle = bossGradient;
+      ctx.shadowColor = '#ff4757';
+      ctx.shadowBlur = 20;
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.r, 0, 2*Math.PI);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+      
+      // Полоска здоровья босса
+      var bw = e.r*2, bh = 8;
+      ctx.fillStyle = 'rgba(255,0,0,0.3)';
+      ctx.fillRect(e.x-bw/2, e.y-e.r-15, bw, bh);
+      ctx.fillStyle = '#4ade80';
+      ctx.fillRect(e.x-bw/2, e.y-e.r-15, bw*(e.health/e.maxHealth), bh);
+      
+      // Текст "BOSS"
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 16px Arial';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#000';
+      ctx.shadowBlur = 3;
+      ctx.fillText('BOSS', e.x, e.y + 5);
+      ctx.restore();
+    });
+
+    // Bullets с улучшенной визуализацией
+    bullets.forEach(function(b){
+      ctx.save();
+      const bulletGradient = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, 5);
+      bulletGradient.addColorStop(0, '#4ade80');
+      bulletGradient.addColorStop(0.7, '#22c55e');
+      bulletGradient.addColorStop(1, '#16a34a');
+      ctx.fillStyle = bulletGradient;
+      ctx.shadowColor = '#4ade80';
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, 5, 0, 2*Math.PI);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.restore();
+    });
+
+    // Player с улучшенной визуализацией
+    ctx.save();
+    const playerGradient = ctx.createRadialGradient(player.x, player.y, 0, player.x, player.y, player.r);
+    playerGradient.addColorStop(0, '#ff6b35');
+    playerGradient.addColorStop(0.7, '#ff8e53');
+    playerGradient.addColorStop(1, '#ffa600');
+    ctx.fillStyle = playerGradient;
+    ctx.shadowColor = '#ff6b35';
+    ctx.shadowBlur = 15;
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.r, 0, 2*Math.PI);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.restore();
+
+    // HUD с улучшенной визуализацией
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillRect(5, 5, 200, 60);
+    ctx.fillStyle = '#4ade80';
+    ctx.font = 'bold 18px Arial';
+    ctx.textAlign = 'left';
+    ctx.shadowColor = '#000';
+    ctx.shadowBlur = 3;
+    ctx.fillText('Score: ' + score, 15, 25);
+    ctx.fillStyle = '#ff4757';
+    ctx.fillText('HP: ' + player.hp + '/' + player.maxHp, 15, 50);
+    ctx.restore();
+
+    // Scrimer
+    if(scrimer.active){scrimerO.style.display='block';
+      scrimerO.style.background = scrimer.type==='red'
+        ? 'rgba(255,0,0,0.5)' : 'black';}else{scrimerO.style.display='none';}}// End game
+  function endGame(won){state='ended';
+    btnPause.style.display='none';
+    oEnd.style.display='flex';
+    endText.textContent = won
+      ? 'Вопрос: \"РЕКККРМ\"'
+      : 'Game Over';
+    finalScore.textContent = 'Ваш счёт: '+score;}// Spawners
+  function spawnEnemy(){var e=Math.random(),x,y;
+    if(e<0.25){x=rnd(0,w);y=-20;}else if(e<0.5){x=rnd(0,w);y=h+20;}else if(e<0.75){x=-20;   y=rnd(0,h);}else{x=w+20;  y=rnd(0,h);}enemies.push({x:x,y:y,r:15,health:2,maxHealth:2,score:1});}function spawnBoss(){var e=Math.random(),x,y;
+    if(e<0.25){x=rnd(0,w);y=-50;}else if(e<0.5){x=rnd(0,w);y=h+50;}else if(e<0.75){x=-50;   y=rnd(0,h);}else{x=w+50;  y=rnd(0,h);}bosses.push({x:x,y:y,r:40,health:20,maxHealth:20,score:50});}function spawnItem(now){var types=['fireRateUp','doubleDamage','speedUp','debuff'],
+        t=types[Math.floor(Math.random()*types.length)];
+    if(t==='debuff'){var ds=['slowFire','halfDamage','slowPlayer','speedEnemies'];
+      t=ds[Math.floor(Math.random()*ds.length)];}items.push({x:rnd(20,w-20),y:rnd(20,h-20),r:15,type:t,spawn:now});}function spawnMedkit(now){items.push({x:rnd(20,w-20),y:rnd(20,h-20),r:15,type:'heal',spawn:now});}})();
+</script>
