@@ -141,9 +141,13 @@
             border-radius: 15px;
             border: 2px solid rgba(255,107,53,0.3);
             margin-bottom: 2rem;
-            max-width: 900px;
+            max-width: 1100px;
             text-align: left;
             font-family: Arial, sans-serif;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px 40px;
+            align-items: start;
         }
         
         .rules h3 {
@@ -190,6 +194,7 @@
             .overlay h1 { font-size: 2.5rem; }
             .overlay p { font-size: 1.2rem; }
             .bigBtn { padding: 15px 30px; font-size: 1.4rem; }
+            .rules { grid-template-columns: 1fr; gap: 16px; padding: 20px; }
         }
     </style>
 </head>
@@ -212,30 +217,33 @@
             <p>Охотьтесь на вампиров в темных коридорах!</p>
             
             <div class="rules">
-                <h3>🎯 Управление:</h3>
-                <ul>
-                    <li><b>Стрелки</b> - движение</li>
-                    <li><b>ЛКМ</b> - стрельба в сторону курсора</li>
-                    <li><b>ESC</b> - пауза</li>
-                    <li><b>R</b> - рестарт уровня</li>
-                </ul>
-                
-                <h3>🎯 Цель:</h3>
-                <ul>
-                    <li>Уничтожить всех вампиров в локации</li>
-                    <li>Найти дверь для перехода</li>
-                    <li>Пройдите все 5 локаций!</li>
-                    <li>Собирайте оружие и сердца</li>
-                </ul>
-                
-                <h3>🎁 Особенности:</h3>
-                <ul>
-                    <li>5 локаций с разными цветами</li>
-                    <li>3 типа оружия с разным уроном</li>
-                    <li>3 типа противников</li>
-                    <li>Система здоровья и прогресса</li>
-                    <li>Случайное расположение дверей</li>
-                </ul>
+                <div>
+                    <h3>🎯 Управление:</h3>
+                    <ul>
+                        <li><b>Стрелки</b> — движение</li>
+                        <li><b>ЛКМ</b> — стрельба в сторону курсора</li>
+                        <li><b>ESC</b> — пауза</li>
+                        <li><b>R</b> — рестарт уровня</li>
+                    </ul>
+                    
+                    <h3>🎯 Цель:</h3>
+                    <ul>
+                        <li>Уничтожить 20 противников</li>
+                        <li>Дождаться босса и победить его</li>
+                        <li>Пройти все 5 локаций</li>
+                        <li>Собирайте оружие и сердца</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>🎁 Особенности:</h3>
+                    <ul>
+                        <li>Сужение зоны каждые 15 сек (до босса)</li>
+                        <li>5 типов боссов с уникальными механиками</li>
+                        <li>Ледяные гранаты у танков, заморозка 1 сек</li>
+                        <li>Иконки: 🎃 игрок, 💀 враг, ❤️ сердце, 🔫 оружие</li>
+                        <li>Выстрелы без ограничения дальности</li>
+                    </ul>
+                </div>
             </div>
             
             <button id="btnStart" class="bigBtn">🧛‍♂️ НАЧАТЬ ОХОТУ</button>
@@ -464,38 +472,33 @@
         }
         
         function generateMaze() {
-            // Generate different maze for each level
+            // Generate different maze for each level, adapt for small screens
             const cellSize = 40; // Fixed cell size
             const mazeWidth = Math.ceil(canvas.width / cellSize);
             const mazeHeight = Math.ceil(canvas.height / cellSize);
-            
+            const isSmall = canvas.width < 900 || canvas.height < 600;
+
             // Clear existing walls
             walls = [];
-            
-            // Create maze pattern based on level
+
+            // Base spacing/probability per level
+            let baseSpacing = 6, baseProb = 0.2;
+            switch (currentLevel) {
+                case 1: baseSpacing = 6; baseProb = 0.20; break;
+                case 2: baseSpacing = 5; baseProb = 0.30; break;
+                case 3: baseSpacing = 4; baseProb = 0.40; break;
+                case 4: baseSpacing = 3; baseProb = 0.50; break;
+                case 5: baseSpacing = 2; baseProb = 0.60; break;
+            }
+
+            // On small screens make maze looser
+            const spacing = isSmall ? Math.min(baseSpacing + 2, 8) : baseSpacing;
+            const prob = isSmall ? baseProb * 0.5 : baseProb;
+
+            // Create maze pattern
             for (let x = 0; x < mazeWidth; x++) {
                 for (let y = 0; y < mazeHeight; y++) {
-                    // Create walls based on level pattern
-                    let shouldCreateWall = false;
-                    
-                    switch (currentLevel) {
-                        case 1: // Simple corridors
-                            shouldCreateWall = (x % 6 === 0 || y % 6 === 0) && Math.random() < 0.2;
-                            break;
-                        case 2: // More complex
-                            shouldCreateWall = (x % 5 === 0 || y % 5 === 0) && Math.random() < 0.3;
-                            break;
-                        case 3: // Dense maze
-                            shouldCreateWall = (x % 4 === 0 || y % 4 === 0) && Math.random() < 0.4;
-                            break;
-                        case 4: // Very dense
-                            shouldCreateWall = (x % 3 === 0 || y % 3 === 0) && Math.random() < 0.5;
-                            break;
-                        case 5: // Almost solid
-                            shouldCreateWall = (x % 2 === 0 || y % 2 === 0) && Math.random() < 0.6;
-                            break;
-                    }
-                    
+                    let shouldCreateWall = ((x % spacing === 0) || (y % spacing === 0)) && Math.random() < prob;
                     if (shouldCreateWall) {
                         walls.push({
                             x: x * cellSize,
@@ -506,6 +509,27 @@
                     }
                 }
             }
+
+            // Carve a safe spawn area around player (circle radius ~3 cells)
+            const safeRadius = isSmall ? 140 : 120;
+            walls = walls.filter(w => {
+                const cx = w.x + w.width / 2;
+                const cy = w.y + w.height / 2;
+                const dx = cx - player.x;
+                const dy = cy - player.y;
+                return (dx * dx + dy * dy) > (safeRadius * safeRadius);
+            });
+
+            // Carve central cross corridors to guarantee connectivity
+            const verticalClearX1 = canvas.width / 2 - cellSize * 1.5;
+            const verticalClearX2 = canvas.width / 2 + cellSize * 1.5;
+            const horizontalClearY1 = canvas.height / 2 - cellSize * 1.5;
+            const horizontalClearY2 = canvas.height / 2 + cellSize * 1.5;
+            walls = walls.filter(w => {
+                const insideVertical = (w.x < verticalClearX2) && (w.x + w.width > verticalClearX1);
+                const insideHorizontal = (w.y < horizontalClearY2) && (w.y + w.height > horizontalClearY1);
+                return !(insideVertical || insideHorizontal);
+            });
         }
         
         function spawnWeapons() {
