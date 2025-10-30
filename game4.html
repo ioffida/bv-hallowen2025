@@ -592,7 +592,8 @@
                 
                 // Сброс игрока
                 player.x = 100;
-                player.y = lanes[1];
+                // Центрируем персонажа по линии (lane Y - половина высоты персонажа)
+                player.y = lanes[1] - player.height / 2;
                 player.vx = 0;
                 player.vy = 0;
                 player.lane = 1;
@@ -638,7 +639,8 @@
                 }
                 
                 player.lane = newLane;
-                player.y = lanes[player.lane];
+                // Центрируем по линии
+                player.y = lanes[player.lane] - player.height / 2;
             }
             
             function spawnObstacle() {
@@ -798,7 +800,8 @@
             function activateBlackDebuff() {
                 blackDebuffActive = true;
                 blackDebuffTime = 0;
-                disabledLane = Math.floor(Math.random() * 3); // Случайная линия
+                // Блокируем либо верхнюю (0), либо нижнюю (2) линию
+                disabledLane = Math.random() < 0.5 ? 0 : 2;
                 blackTimer.style.display = 'flex';
             }
             
@@ -1112,16 +1115,28 @@
                 // Очистка canvas
                 ctx.clearRect(0, 0, w, h);
                 
-                // Фон с полосами уровней
-                ctx.fillStyle = 'rgba(255,107,53,0.1)';
+                // Фон с полосами уровней и явным выделением отключенной линии
                 for (let i = 0; i < 3; i++) {
-                    // Проверяем, не отключена ли линия
-                    if (disabledLane === i) {
-                        ctx.fillStyle = 'rgba(255,0,0,0.3)'; // Красная для отключенной линии
-                    } else {
-                        ctx.fillStyle = 'rgba(255,107,53,0.1)';
-                    }
+                    // Линия-индикатор
+                    ctx.fillStyle = 'rgba(255,107,53,0.25)';
                     ctx.fillRect(0, lanes[i] - 2, w, 4);
+                    
+                    // Если линия отключена — широкий красный бенд
+                    if (disabledLane === i) {
+                        const bandHeight = Math.max(60, h * 0.08);
+                        ctx.save();
+                        const grad = ctx.createLinearGradient(0, lanes[i] - bandHeight/2, 0, lanes[i] + bandHeight/2);
+                        grad.addColorStop(0, 'rgba(255,0,0,0.12)');
+                        grad.addColorStop(0.5, 'rgba(255,0,0,0.35)');
+                        grad.addColorStop(1, 'rgba(255,0,0,0.12)');
+                        ctx.fillStyle = grad;
+                        ctx.fillRect(0, lanes[i] - bandHeight/2, w, bandHeight);
+                        // Контур
+                        ctx.strokeStyle = 'rgba(255,0,0,0.6)';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(0, lanes[i] - bandHeight/2, w, bandHeight);
+                        ctx.restore();
+                    }
                 }
                 
                 // Игрок - тыква
