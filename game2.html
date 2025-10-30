@@ -41,6 +41,9 @@
 <div class="hp-display" id="hpDisplay" style="display:none;">
   <span class="heart">❤️</span><span id="hpValue">3</span>
 </div>
+<div id="redTimer" style="position:absolute;right:20px;top:60px;z-index:50;color:#ffa600;font-size:20px;font-weight:bold;text-shadow:0 2px 4px rgba(0,0,0,0.5);display:none;">
+  🔴 До красной платформы: <span id="redTimerValue">20</span>s
+</div>
 <button id="btnPause" style="display:none;">⏸️ Пауза</button>
 <div id="overlayStart" class="overlay" style="display:flex;">
   <h1 style="color:#ff6b35;font-size:48px;text-shadow:0 4px 12px rgba(255,107,53,0.4);margin-bottom:20px;" class="glow">🎃 666 JUMP 🎃</h1>
@@ -51,9 +54,9 @@
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;text-align:left;">
       <div style="background:rgba(74,222,128,0.1);padding:15px;border-radius:8px;border:1px solid rgba(74,222,128,0.3);">
-        <b style="color:#4ade80;">⭐ БОНУСЫ:</b><br>
-        Появляются на платформах<br>
-        <span style="color:#4ade80;">+1/+5/+10/+25 очков</span>
+      <b style="color:#4ade80;">⭐ БОНУСЫ:</b><br>
+      Появляются на платформах<br>
+      <span style="color:#4ade80;">+1/+5/+10/+25/+50 очков</span>
       </div>
       <div style="background:rgba(255,71,87,0.1);padding:15px;border-radius:8px;border:1px solid rgba(255,71,87,0.3);">
         <b style="color:#ff4757;">💀 ОПАСНОСТИ:</b><br>
@@ -115,7 +118,13 @@
 
   // --- State
   let player, platforms, bonuses, score, keys, bullets, boss, bossTimer, bonusTimer, redPlatIdx, redPlatActive, redPlatTimer, hp, lose, win, bonusId=0, running=false, pause=false;
-  const bonusTypes=[{color:'#10f0',value:1},{color:'#ffa600',value:5},{color:'#0af866',value:10},{color:'#d11fff',value:25}];
+  const bonusTypes=[
+    {color:'#10f0',value:1},
+    {color:'#ffa600',value:5},
+    {color:'#0af866',value:10},
+    {color:'#d11fff',value:25},
+    {color:'#ffd700',value:50}
+  ];
   function reset() {
     platforms = [];
     let y = h - 50;
@@ -190,6 +199,7 @@
     btnPause.style.display = "block";
     scoreDisplay.style.display = "block";
     hpDisplay.style.display = "block";
+    document.getElementById('redTimer').style.display = 'block';
     reset();
     updateUI();
     lastTime = performance.now();
@@ -261,6 +271,20 @@
       redPlatActive = true;
       redPlatTimer = 0;
     }
+    // --- Обновление таймера до красной платформы
+    (function updateRedTimer(){
+      const el = document.getElementById('redTimerValue');
+      if(el){
+        let t = 0;
+        if(!redPlatActive){
+          t = Math.max(0, Math.ceil(20 - redPlatTimer));
+        } else {
+          // пока активна, показываем 0
+          t = 0;
+        }
+        el.textContent = t;
+      }
+    })();
     
     if(redPlatActive && redPlatTimer > 5) {
       platforms[redPlatIdx].red = false;
