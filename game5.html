@@ -481,15 +481,9 @@
             // Clear existing walls
             walls = [];
 
-            // Base spacing/probability per level
-            let baseSpacing = 6, baseProb = 0.2;
-            switch (currentLevel) {
-                case 1: baseSpacing = 6; baseProb = 0.20; break;
-                case 2: baseSpacing = 5; baseProb = 0.30; break;
-                case 3: baseSpacing = 4; baseProb = 0.40; break;
-                case 4: baseSpacing = 3; baseProb = 0.50; break;
-                case 5: baseSpacing = 2; baseProb = 0.60; break;
-            }
+            // Use level 1 density for all levels
+            let baseSpacing = 6; // like level 1
+            let baseProb = 0.20; // like level 1
 
             // On small screens make maze looser
             const spacing = isSmall ? Math.min(baseSpacing + 2, 8) : baseSpacing;
