@@ -860,20 +860,8 @@
                         break;
                         
                     case 'water':
-                        if (boss.specialTimer >= 600) { // Every 10 seconds
-                            // Become water for 5 seconds
-                            boss.vulnerable = false;
-                            // Mark quarter of map as water
-                            waterAreas.push({
-                                x: Math.random() * (canvas.width - canvas.width/2),
-                                y: Math.random() * (canvas.height - canvas.height/2),
-                                width: canvas.width/2,
-                                height: canvas.height/2,
-                                timer: 300, // 5 seconds
-                                active: true
-                            });
-                            boss.specialTimer = 0;
-                        }
+                        // Water Boss no longer becomes invulnerable or marks water areas
+                        // Keep ability disabled; do nothing here
                         break;
                         
                     case 'vampire':
